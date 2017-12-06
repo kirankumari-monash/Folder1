@@ -2,7 +2,7 @@
 #include <stdio.h>  
 #include<stdlib.h>
 #define NDATA 80
-#define NTRAJ 17
+#define NTRAJ 1
 #define NBLOCKS 1
 #define CHOP 0
 main()
@@ -68,6 +68,7 @@ double g31er = 0.0; double g32er = 0.0; double g33er = 0.0;
 double EtaMixerNew=0.0;
 int dummy1 = 0;
 double dummy2=0.0;
+double dummy3=0.0;
 int d1 = 0;
 double d2 = 0.0; 
 double d3 = 0.0;
@@ -95,10 +96,11 @@ for (k=0;k<NTRAJ;k++) {
 	for (i=0;i<NDATA;i++) {
                 
 		if (i < CHOP) {
-		fscanf(fp, " %lf %lf %lf %lf %lf \n",&d1,&d2,&d3,&d4,&d5);
+		fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
 		} 
 		if (i >= CHOP) {
-		fscanf(fp, "%lf %lf %lf %lf %lf \n", &time, &Re2, &dummy1, &Rg2, &dummy2);
+		fscanf(fp, "%lf %lf %lf %lf %lf %d \n", &time, &Re2, &dummy3, &Rg2, &dummy2, &dummy1);
+                printf("after fscanf %lf \t %lf \n", Re2, Rg2);
 		//j = j + 1;
 		Re2mean = Re2mean + Re2;
                 Re2traj[k] += Re2; 
@@ -162,10 +164,10 @@ for (k=0;k<NTRAJ;k++) {
         j = 0;
         for (i=0;i<NDATA;i++) {
                 if (i < CHOP) {
-		 fscanf(fp, " %lf %lf %lf %lf %lf \n",&d1,&d2,&d3,&d4,&d5);
+		 fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
                 }
                 if (i >= CHOP) {
-                fscanf(fp, "%lf %lf %lf %lf %lf \n", &time, &Re2, &dummy1, &Rg2, &dummy2);
+                fscanf(fp, "%lf %lf %lf %lf %lf %d \n", &time, &Re2, &Rg2, &dummy2, &dummy3, &dummy1);
 
 
                 j = j + 1;

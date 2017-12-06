@@ -42,7 +42,7 @@ Program chainsim_p
 
   ! for gfortran
   Character (len=80) :: Format3, Format31, Format4, Format42, &
-       Format43, Format5, Format51, Format6
+       Format43, Format5, Format51, Format6, Format47
 
   ! Trajectories related
   Integer, Parameter :: MaxNDT = 10
@@ -171,6 +171,7 @@ Program chainsim_p
      
 !!$  Write(Format4 ,"(a,I3,a)") "(", 2*NProps+4,"(G11.4,1X))"
   Write(Format42,"(a,I3,a)") "(", 2*eqprops+1, "(G22.17,1X))"
+  Write(Format47,"(a,I3,a)") "(", eqprops+2, "(G22.17,1X))"
   Write(Format43,"(a,I3,a)") "(", 2*neqprops+2, "(G11.6,1X))"
 
 !!$  Write(Format5, "(a,I3,a)") "('#',A11,1X,", nsact, "(G11.4,2X))"
@@ -381,10 +382,10 @@ Program chainsim_p
         eqprops = 4
 
         !Do i=1,nsact
-        Write (posunit,Format42)(times(i), &
-             samples(1,i), global_errs(1,i), &
-             samples(14,i), global_errs(14,i), &
-             samples(17,i), global_errs(17,i), &
+        Write (posunit,Format47)(times(i), &
+             samples(1,i), &
+             samples(14,i), &
+             samples(17,i), &
              samples(11,i), i ,  &
              i = 1,nsact )
 
