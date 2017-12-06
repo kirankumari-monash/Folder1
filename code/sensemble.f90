@@ -149,7 +149,7 @@ Program chainsim_p
   Else
      tmax = emax/gdots
   End If
-     tmax =0.1*t1rouse !!!! kiran 
+     tmax =3*t1rouse !!!! kiran 
    write (*,*) "trouse time is", t1rouse, "tmax is", tmax
   !_____________________________________________________________
   !        Initialization variable format expressions
