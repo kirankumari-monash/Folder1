@@ -223,7 +223,7 @@ Subroutine maxminev_fi(n, A, maxev, minev)
   !     of a symmetric matrix nxn matrix A using Fixman's suggestion.   c
   !---------------------------------------------------------------------c
   Integer lda, incx, incy, i
-  Real F(n), G(n), alpha, beta, sdot
+  Real F(n+1), G(n), alpha, beta, ddot
 
   F = 1.0
   G = 0.0
@@ -234,8 +234,8 @@ Subroutine maxminev_fi(n, A, maxev, minev)
   incx = 1
   incy = 1
 
-  Call ssymv('U',n,alpha,A,lda,F,incx,beta,G,incy)
-  maxev = sdot(n, F, 1, G, 1)
+  Call dsymv('U',n,alpha,A,lda,F,incx,beta,G,incy)
+  maxev = ddot(n, F, 1, G, 1)
   maxev = 2.0*maxev/n
 
   !Forall (i = 1:n) F(i) = (-1.0)**i
@@ -245,8 +245,8 @@ Subroutine maxminev_fi(n, A, maxev, minev)
   End Do
   
 
-  Call ssymv('U',n,alpha,A,lda,F,incx,beta,G,incy)
-  minev = sdot(n, F, 1, G, 1)
+  Call dsymv('U',n,alpha,A,lda,F,incx,beta,G,incy)
+  minev = ddot(n, F, 1, G, 1)
   minev = minev/2.0/n
   !        write (*,*) maxev, minev
 

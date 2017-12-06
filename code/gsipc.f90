@@ -373,7 +373,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 !!!_________________________________________________________|
 
   ! external BLAS functions
-  Real snrm2,sdot
+  Real dnrm2,ddot
 
   Real time, fd_err, fd_err_max, om1, om2, rs,&
        rsbyhs, hsbyrs, hsbyrs2, L_max, L_min, d_a, d_b,&
@@ -630,7 +630,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            beta = 0.0
 
            ! BLAS2 symmetric matrix-vector multiplication
-           Call ssymv('U', Ndof, alpha,Dp_sym_up,lda,  X_l_1,incx, &
+           Call dsymv('U', Ndof, alpha,Dp_sym_up,lda,  X_l_1,incx, &
                 beta,X_l,incy)  
 
            ! Update DelS vector            
@@ -639,10 +639,11 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            Do l = 2,ncheb
               alpha = 2.0
               beta = 0.0
-              Call ssymv('U', Ndof, alpha,Dp_sym_up,lda, X_l,incx,  &
+              Call dsymv('U', Ndof, alpha,Dp_sym_up,lda, X_l,incx,  &
                    beta,X_lp1,incy)
               X_lp1 = X_lp1-X_l_1
               X_l_1 = X_l
+
 
               ! The l-th Chebyshev vector
               X_l = X_lp1
@@ -656,16 +657,16 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            ! the fluctuation-dissipation theorem
 
            If (.Not.fd_check) Then
-              fd_err = sdot(Ndof, DelS, 1, DelS, 1) ! BLAS-1 function
+              fd_err = ddot(Ndof, DelS, 1, DelS, 1) ! BLAS-1 function
               alpha = 1.0
               beta = 0.0
 
               !Use D:X_0X_0 = X_0.D.X_0 
               !Get D.X_0 first, and then get the dot product of X_0 with the
               ! resulting vector. X_l is reused 
-              Call ssymv('U', Ndof,alpha,Diffusion_sup,lda, &
+              Call dsymv('U', Ndof,alpha,Diffusion_sup,lda, &
                    X_0,incx, beta,X_l,incy)       
-              temp1 = sdot(Ndof, X_0, 1, X_l, 1)
+              temp1 = ddot(Ndof, X_0, 1, X_l, 1)
               fd_err = Abs((fd_err - temp1)/temp1)
            End If
 
@@ -703,7 +704,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
         alpha = 0.25*Delts
         beta = 0.0
         ! Assigns DR_pred <- 0.25*Delts* D.F      
-        Call ssymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
+        Call dsymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
              beta,DR_pred,incy)   
      Else
         DR_pred = 0.25 * Delts * F_tot
@@ -738,7 +739,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
         If (Hstar.Gt.0) Then
            alpha = 0.125*Delts      ! The prefactor is 1/8 and not 1/4
            beta = 1.0               ! Add to existing
-           Call ssymv('U', Ndof, alpha,Diffusion_sup,lda, F_ev,incx,  &
+           Call dsymv('U', Ndof, alpha,Diffusion_sup,lda, F_ev,incx,  &
                 beta,Ups_pred,incy) 
         Else
            Ups_pred = Ups_pred + 0.125 * Delts * F_ev 
@@ -814,7 +815,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            ! the remaining terms on the RHS of Eq.(20)
            gama_mu = gama_mu + diffUps(:,mu) + 0.25 * F_con_mu * Delts 
 
-           gama_mag = snrm2(Ndim,gama_mu,1) ! BLAS single normal two
+           gama_mag = dnrm2(Ndim,gama_mu,1) ! BLAS single normal two
 
            ! r = Q_nu_mag/sqrt(b) varies from (0,1)
            Call solve_implicit_r(spring_type,dtsby4,gama_mag/sqrtb,Q0s/sqrtb,r,ff)
@@ -845,7 +846,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
         Rtemp = R_corr - R_pred
         !lt_err = snrm2(Ndof,Rtemp,1)/NBeads
-        lt_err = snrm2(Ndof,Rtemp,1)/snrm2(Ndof,R_Bead,1)
+        lt_err = dnrm2(Ndof,Rtemp,1)/dnrm2(Ndof,R_Bead,1)
 
         lt_count = lt_count + 1
 
@@ -865,8 +866,8 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      time = time + Delts
 
      Rtemp = R_Bead - R_pred_old
-     pcerr = snrm2(Ndof,Rtemp,1)/NBeads
-     pcerr = snrm2(Ndof,Rtemp,1)/snrm2(Ndof,R_Bead,1)
+     pcerr = dnrm2(Ndof,Rtemp,1)/NBeads
+     pcerr = dnrm2(Ndof,Rtemp,1)/dnrm2(Ndof,R_Bead,1)
 
      If (ncheb_flag) Then
         ncheb = ncheb_old

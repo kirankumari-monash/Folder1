@@ -3,7 +3,18 @@ To compile the programme type
 $ make sens
 This will compile a single processor (multiple runs per directory)
 
+=============== Status of the code =========================
 
+
+Major Implementation: 
+   1) Fraenkel spring 
+   2) Modified LJ potential
+   3) double precision using flag
+   
+
+Minor Modification:
+   1) Corrected the array size of maxminev subroutine of utils.f90 (not properly defined earlier)
+  
 ============== Running The Programme ========================
 
 Input parameter description file: intputc.dat

@@ -23,8 +23,9 @@ OPT = -O3
 #MPIHOME = /usr/local/mpich-1.2.5-i-gm
 #INCLUDES = -I$(MPIHOME)/include
 
+FFLAGS = -fbounds-check -fdefault-real-8
 ## Compiler flags
-FFLAGS = $(db) $(INCLUDES) $(OPT)\
+#FFLAGS = $(db) $(INCLUDES) $(OPT)\
 # -warn unused -warn nousage -hpfwarn hpf \
 # -warn declarations -warn argument_checking
 
