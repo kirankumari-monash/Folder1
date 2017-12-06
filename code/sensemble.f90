@@ -34,10 +34,11 @@ Program chainsim_p
   Character(10), parameter :: FormatVersion = "GAVG-1.0"
   !Character (10) :: fver
   Character (len=20) infile, outfile, xdfile, gavgfile, ntfile, contfile,fver
-  
+  Character (len=20) posfile, ntrajfile 
   Integer, Parameter ::   inunit=10, outunit=11, gavunit=12, &
-       resunit=15, cunit=16, inphi=17
-  Logical :: Filexists, Flocked
+       resunit=15, cunit=16, inphi=17, ntrajunit=17, posunit =18
+
+  Logical :: Filexists, Flocked, Ntrajlocked, Ntrajdolocked
 
   ! for gfortran
   Character (len=80) :: Format3, Format31, Format4, Format42, &
@@ -47,7 +48,7 @@ Program chainsim_p
   Integer, Parameter :: MaxNDT = 10
   Integer i, j, clok(8), k
   Integer nthis, nblock, iblock, ntrajdone, ntraj, Nsamples, &
-       idelts, ndelts,  ntrajvals(MaxNDT), nthisvals(MaxNDT)
+       idelts, ndelts,  ntrajvals(MaxNDT), nthisvals(MaxNDT), ntrajout
 
   Real (DBprec) t1zimm, emax, tol(MaxNDT)
   Real (DBprec) deltseq, deltsne, deltseqvals(10), tlongest, &
@@ -238,8 +239,8 @@ Program chainsim_p
 
   !-- an unique seed incase clok is the same
   nseed = (nseed + 201271)
-
-
+  nseed = 201271
+  
 
   !_____________________________________________________________
   !    Begin the loop for time step sizes                       c
@@ -297,6 +298,7 @@ Program chainsim_p
 
      avgs = 0.d0
      errs = 0.d0
+      Write (ntrajfile, '("ntrajdone.",I2.2)') idelts
 
      !_____________________________________________________________
      !    Begin the loop for the blocks                            c
@@ -332,6 +334,80 @@ Program chainsim_p
        !      0., tmax, deltsne, &
        !      0., zstar, dstar, sqrtb, Q0s, &
        !      nseed, nsact, times, samples , phi)
+
+         Inquire (file=ntrajfile, exist=Filexists)
+        If (Filexists) Then
+           !-- check if it is locked
+           Ntrajlocktest: do
+              call islocked(ntrajfile,Ntrajlocked)
+              if(.not. Ntrajlocked) Then
+                 call lockfile(ntrajunit,ntrajfile)
+                 !-- to be unlocked until after new data is written
+
+                 Open(unit = ntrajunit, file = ntrajfile, status = 'old')
+                    Read (ntrajunit,*)
+                    Read (ntrajunit,*) ntrajout
+                 Close (ntrajunit)
+                 Exit Ntrajlocktest
+              else  ! when File is locked
+                 ! Sleep for a while and try again until it is unlocked,
+                 ! requires -Vaxlib in ifc
+                 call sleep(1)
+              end if
+           end do Ntrajlocktest
+        Else ! if ntraj does .not. Filexists
+           ! lock the file before opening a new one for writing
+           call lockfile(ntrajunit,ntrajfile)
+           ! to be unlocked after new data is written
+           ntrajout = 0
+        End If
+
+      ! Write the new number of trajectories done to a file
+        Open(unit = ntrajunit, file = ntrajfile, status = 'unknown')
+           Write (ntrajunit,*) 'number of trajectories has been accumulated'
+           Write (ntrajunit,*) ntrajout + 1
+        Close (ntrajunit)
+        !-- ntraj file is released for use with other processors
+        call unlockfile(ntrajunit,ntrajfile)
+
+      ! Write the position vector for all the sampling points for this
+      ! trajectory
+      ! to a file accordingly.
+        Write (posfile, '("Prop_", I3.3".txt")') ntrajout + 1
+        Open(unit = posunit, file = posfile, status = 'unknown')
+          !write(posunit,*) 'kiran'
+       
+     If (gdots .Eq. 0) Then
+        eqprops = 4
+
+        Write (posunit,Format42) (times(i), &
+             samples(1,i), global_errs(1,i),  &
+             samples(14,i), global_errs(14,i),  &
+             samples(17,i), global_errs(17,i), &
+             samples(11,i), global_errs(11,i), &
+             i = 1,nsact )
+
+     Else
+        neqprops = 4
+        Write (posunit,Format3) &
+             "Time      ",  &
+             "Strain    ",  &
+             Prop_names(1), Erstring, &
+             Prop_names(14), Erstring, &
+             "psi1     ", Erstring, &
+             "etap     ", Erstring
+        Write (posunit,Format31) (i, i=1,2+neqprops*2)
+        Write (posunit,Format43) (times(i), times(i)*gdots,  &
+             global_avgs(1,i), global_errs(1,i), &
+             global_avgs(14,i), global_errs(14,i), &
+             -global_avgs(8,i)/gdots/gdots, global_errs(8,i)/gdots/gdots, &
+             -global_avgs(10,i)/gdots, global_errs(10,i)/gdots, &
+             i = 1,nsact )
+     End If
+
+
+        Close (posunit)
+
 
 
         avgs = avgs + samples
