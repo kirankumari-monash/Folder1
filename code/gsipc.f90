@@ -107,6 +107,7 @@ Module BSpModel
 !!! This module contains the constants and functions which are specific
 !!! to the model of spring and EV.
   Use bspglocons
+  Use csputls
   Implicit None
 
   ! These are paramters that will be used  by the following procedures
@@ -114,8 +115,8 @@ Module BSpModel
 
   ! paramters for EV
   Real (DBprec) zsbyds5,pt5bydssq
-  Real (DBprec) LJa,LJb,LJpa,LJpb,Rmin,Rcutg,Rcutp
-
+  Real (DBprec) LJa,LJb,LJpa,LJpb,Rmin,Rcutg,Rcutp, Rlist
+  Integer dlist, maxnab
 
 Contains 
 
@@ -151,30 +152,41 @@ Contains
 
   End Subroutine force_sans_hookean
 
-  Subroutine Spring_force(sptype,N,b2bvec,dr,Fs,Q0s)
+  Subroutine Spring_force(sptype,N,R_Bead,Fs,Q0s)
     Integer, Intent (in) :: sptype
     Integer, Intent (in)  :: N
-    Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
-    Real (DBprec), Intent (in)  :: dr(:,:)      ! Nbeads x Nbeads
+   ! Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
+    Real (DBprec), Intent (in)  :: R_Bead(:,:)      ! Nbeads x Nbeads
     Real (DBprec), Intent (out) :: Fs(:,:)      ! Ndim x Nbeads
     Real (DBprec), Intent (in) :: Q0s 
 !!! Purpose:
     ! computes the net spring force on a bead due to 
     ! connector springs of neighbouring beads
 
-    Integer nu
+    Integer nu, mu, i
     Real (DBprec) r , Q0sp! = |Q| / sqrtb
     Real (DOBL) Fcnu(Ndim), Fcnu1(Ndim), nonhook
-
+    Real (DBprec) b2bvec(Ndim,N,N), r12(Ndim), modr
+    Real (DBprec) dr(N,N)
     Fs  = 0.d0
-
+    b2bvec = 0.d0  !! check as its not present earlier
     Fcnu1 = 0.d0 ! Fc of nu-1
 
     Do nu = 1,N-1 ! over each of the connector
-
+       ! Calculating bead to bead distance
+       b2bvec(:,nu,nu+1) = R_Bead(:,nu+1) - R_Bead(:,nu)
+       r12 = b2bvec(:,nu,nu+1)
+       ! Calculating modr
+       modr = 0.d0
+       Do i=1,Ndim
+          modr = modr + r12(i) * r12(i)
+       End Do
+       If (modr < 1.0e-12) modr = 1.0e-12
+       dr(nu,nu+1) =Sqrt(modr)
       ! r = dr(nu,nu+1)/sqrtb ! only upper diagonal
-        r = dr(nu,nu+1)/sqrtb
-        Q0sp = Q0s/sqrtb
+       r = dr(nu,nu+1)/sqrtb
+       !write(*,*) "dr", dr
+       Q0sp = Q0s/sqrtb
        If (Abs(r - 1.d0) .Lt. MYEPS) r = 1 - MYEPS
 
        Call force_sans_hookean(sptype,r,nonhook,Q0sp)
@@ -186,7 +198,7 @@ Contains
        Fs(:,nu) = Fcnu - Fcnu1
        Fcnu1 = Fcnu ! save for the next bead
     End Do
-
+      
     ! and the last bead
     Fs(:,N) = - Fcnu1
 
@@ -266,19 +278,27 @@ Contains
   End Subroutine solve_implicit_r
 
 
-  Subroutine Excluded_volume_force(N,b2bvec,dr,Fev,phi)
+  Subroutine Excluded_volume_force(N,R_Bead,R_list_save,R0,Fev,phi)
     Use bspglocons
 
 !!! This routine returns excluded volume force
     Integer, intent (in) :: N
-    Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
-    Real (DBprec), Intent (in)  :: dr(:,:)      ! Nbeads x Nbeads
+   ! Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
+    Real (DBprec), Intent (in)  :: R_Bead(:,:)      ! Nbeads x Nbeads
+    Real (DBprec), Intent (in) :: R_list_save(:,:) ! absolute position
+    Real (DBprec), Intent (inout) :: R0(:,:) ! last neighbour list update
     Real (DBprec), Intent (out) :: Fev(:,:)     ! Ndim x Nbeads 
     Real (DBprec), Intent (in) :: phi(:,:)
-    
-    Integer nu,mu
-    Real (DBprec) Fpair12(Ndim)
+    Real (DBprec) dr(N,N)
+    Integer nu,mu, UPDATE
+    Real (DBprec) :: Fpair12(Ndim), b2bvec(Ndim,N,N), r12(Ndim), modr
     Real (DBprec) :: alpha, beta 
+!!! Parameters for neighbour list
+    Integer nlist, point(N)
+    Integer list(maxnab)
+    Integer Jbeg, Jend, Jnab, i
+
+
     Fev  = 0.d0
     alpha = 3.1730728678d0
     beta = -0.856228645d0
@@ -290,38 +310,135 @@ Contains
        ! on any other index of lhs, other than the lhs itself
        ! ie, we can have  foo(mu) = foo(mu) + bar(nu)
        ! but not  foo(mu) = foo(mu+3) + bar(nu)
-       Do nu = 2,N
-          Do mu  = 1,nu-1 
-             ! force between the pair mu,nu, since the EV force is
-             ! repulsive, we take it to be in the opposite direction
-             ! of the connector vector mu -> nu
-             ! convention followed: force is positive for attraction
-           If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
-                Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
-                Fev(:,mu) = Fev(:,mu) + Fpair12
-                Fev(:,nu) = Fev(:,nu) - Fpair12
+          ! NEIGHBOUR LIST
+      ! Call CheckNeighbour(N,R_list_save,R0,UPDATE)
+       UPDATE = 1 
+       Select case (UPDATE)
+       Case(1)
+           ! Call SaveConfiguration(N,R_list_save,R0)
+            write(*,*) 'dlist_on update', dlist
+            nlist = 0        
+            Do nu = 2,N
+               point(nu) = nlist+1 
+               Do mu  = 1,nu-1 
+               !!! call bead to bead amd 
+               b2bvec(:,mu,nu) = R_Bead(:,nu) - R_Bead(:,mu)
+               r12 = b2bvec(:,mu,nu)
+               ! Calculating modr
+               modr = 0.d0
+               Do i=1,Ndim
+                   modr = modr + r12(i) * r12(i)
+               End Do
+               If (modr < 1.0e-12) modr = 1.0e-12
+               dr(mu,nu) =Sqrt(modr)
+                   
+               If (dr(mu,nu) .le. Rlist) Then
+                   nlist = nlist + 1
+                   list(nlist) = mu 
+                  ! Time to calculate force
+                  ! force between the pair mu,nu, since the EV force is
+                  ! repulsive, we take it to be in the opposite direction
+                  ! of the connector vector mu -> nu
+                  ! convention followed: force is positive for attraction
+               If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
+                   Fpair12 = - b2bvec(:,mu,nu) &
+                *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
          
-            Else If (dr(mu,nu) .lt. Rmin) Then
-               Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
-                Fev(:,mu) = Fev(:,mu) + Fpair12
-                Fev(:,nu) = Fev(:,nu) - Fpair12
+               Else If (dr(mu,nu) .lt. Rmin) Then
+                    Fpair12 = - b2bvec(:,mu,nu) &
+                 *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
 
-            Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then 
-                 Fpair12= -b2bvec(:,mu,nu) &
-                     *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
-                 Fev(:,mu) = Fev(:,mu) + Fpair12
-                 Fev(:,nu) = Fev(:,nu) - Fpair12
-           End If 
-            ! Fpair12 = - b2bvec(:,mu,nu) & 
-            !      * zsbyds5*Exp(-dr(mu,nu)*dr(mu,nu) * pt5bydssq) 
-            ! Fev(:,mu) = Fev(:,mu) + Fpair12
-            ! Fev(:,nu) = Fev(:,nu) - Fpair12
-          End Do
-       End Do
-    End If
+               Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then 
+                    Fpair12= -b2bvec(:,mu,nu) &
+                 *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
+               End If 
+                   Fev(:,mu) = Fev(:,mu) + Fpair12
+                   Fev(:,nu) = Fev(:,nu) - Fpair12
+               End If  ! Rlist
+               End Do !mu
+             End Do !nu
+ 
+       Case(2)
+            write(*,*) "dlist without update", dlist
+            Do nu = 2,N
+              Jbeg = point(nu)
+              Jend = point (nu + 1) - 1 
+              If (Jbeg .le. Jend) Then
+                 write(*,*) "inside jnab"
+                 Do Jnab = Jbeg, Jend
+                   mu = list(Jnab)
+                   b2bvec(:,mu,nu) = R_Bead(:,nu) - R_Bead(:,mu)
+                   r12 = b2bvec(:,mu,nu)
+                   modr = 0.d0
+                   Do i=1,Ndim
+                       modr = modr + r12(i) * r12(i)
+                   End Do
+                   If (modr < 1.0e-12) modr = 1.0e-12 
+                  !so that initial dr is != 0
+                   dr(mu,nu) = Sqrt(modr)
+
+                   ! Force calculation
+                   If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
+                      Fpair12 = - b2bvec(:,mu,nu) &
+                     *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
+
+                   Else If (dr(mu,nu) .lt. Rmin) Then
+                      Fpair12 = - b2bvec(:,mu,nu) &
+                    *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
+
+                   Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then
+                      Fpair12= -b2bvec(:,mu,nu) &
+                    *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
+                   End If
+                      Fev(:,mu) = Fev(:,mu) + Fpair12
+                      Fev(:,nu) = Fev(:,nu) - Fpair12
+              
+               End Do  ! Jnab
+               End If ! Jbeg
+               write(*,*) "outside jnab"
+           End Do  ! nu
+       End Select
+   End If ! LJa
   End Subroutine Excluded_volume_force
+
+  Subroutine CheckNeighbour(N,R_Bead,R0,UPDATE)
+    Integer, Intent(in) :: N
+    Real (DBprec), Intent (in) :: R_Bead(:,:)
+    Real (DBprec), Intent (in) :: R0(:,:)
+    Integer, Intent(inout) :: UPDATE
+    Real (DBprec) :: dismax, b2b(Ndim,N), r11(Ndim)
+    Real(DBprec) :: modr
+    Integer :: i, j
+    dismax = 0.d0
+    Do i = 1,N
+      modr=0.d0
+      b2b(:,i) = R_Bead(:,i) -R0(:,i)
+      r11= b2b(:,i)
+      Do j = 1, Ndim
+      
+      ! dismax = max(abs(R_Bead(j,i)-R0(j,i)), dismax)
+      modr =  modr + r11(j)*r11(j)
+      dismax = max(sqrt(modr),dismax)
+      End Do
+    End Do
+   ! dismax = 2.d0 * Sqrt(3.d0*(dismax*dismax))
+
+    If (dismax .gt. (Rlist-Rcutp)) Then
+        UPDATE = 1
+    Else 
+        UPDATE = 1
+    End If
+
+    If (dlist .eq. 1) UPDATE =1
+       
+  End Subroutine CheckNeighbour
+
+  Subroutine SaveConfiguration(N,R,R0)
+    Integer , Intent(in) :: N
+    Real(DBprec), Intent (in) :: R(:,:)
+    Real(DBprec), Intent (inout) :: R0(:,:) 
+     R0 = R
+  End Subroutine SaveConfiguration
 End Module BSpModel
 
 
@@ -333,7 +450,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   Use bspglovars
   Use Flowvars
   Use bspintfacs, TIC_from_bspintfacs => Time_Integrate_Chain
-  Use bspmodel
+  Use BSpModel
   Use csputls
 
   !Use blas_interfaces unable to obtain proper interface 
@@ -428,7 +545,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   !     Definitions for the BLAS-2 routine "ssymv"
   Integer Ndof, lda, ldadiff, incx, incy
   Real (DBprec) alpha, beta
-
+  Real (DBprec) :: R0(Ndim,NBeads), R_list_save(Ndim,Nbeads)
   
   sqrtb = L0s ! sqrtb will be needed by other modules
     
@@ -443,8 +560,9 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   Rmin = 0.7D0*Dstar
   Rcutg = Dstar*(2.D0**(1.D0/6.D0))
   Rcutp = 1.5D0*Dstar
-
-
+  Rlist = 10.d0 * Dstar
+  dlist = 0
+  maxnab = NBeads*NBeads
   sqrt2inv = 1.d0/(2.d0**0.5d0)
   TPI = 2.d0*PI
   RPI = Sqrt(PI)
@@ -502,9 +620,11 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
 
   Overtime: Do While (time.Le.Tmax+Delts/2.d0)
-
+     dlist = dlist+1
      ! find the center of mass
      cofm = 0.d0
+     ! Saving absolute position for Neighbour list
+     R_list_save = R_bead
      Do mu = 1, NBeads
         cofm = cofm + R_bead(:,mu)
      End Do
@@ -518,15 +638,15 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
      ! calculate the bead to bead vector and its magnitude
      ! for use in the forces
-     Call b2bvector_sym_up(NBeads,R_Bead,b2b_sup)
-     Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
+     ! Call b2bvector_sym_up(NBeads,R_Bead,b2b_sup)
+     ! Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
 
 
      ! change the nature of the spring, in the specific subroutine
      ! in Spring_force(), in module Bead_spring_model
-     Call Spring_force(spring_type,NBeads,b2b_sup,deltaR_sup,F_spring,Q0s)
-     Call Excluded_volume_force(NBeads,b2b_sup,deltaR_sup,F_ev,phi)
-
+     Call Spring_force(spring_type,NBeads,R_Bead,F_spring,Q0s)
+     Call Excluded_volume_force(NBeads,R_Bead,R_list_save,R0,F_ev,phi)
+     dlist=dlist+1
 
      ! Therefore, total force on each bead...    
      F_tot = F_spring + F_ev
@@ -706,10 +826,18 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      If (Hstar.Gt.0) Then
         alpha = (2.5D0 - 1)*Delts
         beta = 0.D0
-        
-        Call dsymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
-              beta,DR_pred,incy)
-        
+        ! Assigns DR_pred <- 0.25*Delts* D.F     
+       ! Select Case (DBprec)
+      !  Case(SNGL)
+        !   Call ssymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
+         !       beta,DR_pred,incy)
+       ! Case(DOBL)
+           Call dsymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
+                beta,DR_pred,incy)
+        !End Select
+ 
+       ! Call dsymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
+        !     beta,DR_pred,incy)   
      Else
         DR_pred = 0.25d0 * Delts * F_tot
      End If
@@ -735,18 +863,23 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      If (Zstar > 0) Then
         ! Calculate distances between beads using R_pred
         ! reuse variables
-        Call b2bvector_sym_up(NBeads,R_pred,b2b_sup)
-        Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
-        Call Excluded_volume_force(NBeads,b2b_sup,deltaR_sup,F_ev,phi)
+       ! Call b2bvector_sym_up(NBeads,R_pred,b2b_sup)
+       ! Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
+       Call Excluded_volume_force(NBeads,R_pred,R_list_save,R0,F_ev,phi)
 
         ! Calculate D.FEV using R_pred and update
         If (Hstar.Gt.0) Then
            alpha = 0.125D0*Delts      ! The prefactor is 1/8 and not 1/4
            beta = 1.D0               ! Add to existing
-        
+         ! Select Case (DBprec)
+        !  Case(SNGL)
+          !     Call ssymv('U', Ndof, alpha,Diffusion_sup,lda, F_ev,incx,  &
+         !       beta,Ups_pred,incy)
+         ! Case(DOBL)
           Call dsymv('U', Ndof, alpha,Diffusion_sup,lda, F_ev,incx,  &
                 beta,Ups_pred,incy) 
-        
+          !End Select
+
         Else
            Ups_pred = Ups_pred + 0.125d0 * Delts * F_ev 
         End If
