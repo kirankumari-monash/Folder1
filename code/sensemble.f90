@@ -49,26 +49,28 @@ Program chainsim_p
   Integer nthis, nblock, iblock, ntrajdone, ntraj, Nsamples, &
        idelts, ndelts,  ntrajvals(MaxNDT), nthisvals(MaxNDT)
 
-  Real tlongest,  t1rouse, t1zimm, teqbm, emax, tmax, deltseq, deltsne, &     
-       deltseqvals(10), deltsvals(MaxNDT), tol(MaxNDT)
+  Real (DBprec) t1zimm, emax, tol(MaxNDT)
+  Real (DBprec) deltseq, deltsne, deltseqvals(10), tlongest, &
+            deltsvals(MaxNDT), tmax, teqbm, t1rouse 
+            
 
-  Real, Allocatable :: PosVecR(:,:), times(:), samples(:,:), &
+  Real (DBprec), Allocatable :: PosVecR(:,:), times(:), samples(:,:), &
        avgs(:,:), errs(:,:), &
        global_avgs(:,:), global_errs(:,:) 
   !!!!! phi parameter declared here
-  Real, Allocatable :: phi(:,:)
+  Real (DBprec), Allocatable :: phi(:,:)
 
 
   Integer SType,mmult, nsact, cidx, ord, eqprops, neqprops
 
-  Real hstar, zstar, dstar, sqrtb, Q0s
-  Real binwidth, intCss, csserr, l1rouse
+  Real (DBprec) hstar, zstar, dstar, sqrtb, Q0s
+  Real (DBprec) binwidth, intCss, csserr, l1rouse
   Character (len=10), parameter :: ErString = "Error"
-  Real  rems, reerr, rgms, rgerr, xms, xerr, dfvty, derr, ntot, Conf_t
+  Real (DBprec) rems, reerr, rgms, rgerr, xms, xerr, dfvty, derr, ntot, Conf_t
 
 
   Integer :: NBeads
-  Real :: Delts
+  Real (DBprec) :: Delts
 
   !_____________________________________________________________
   !        Get input data                                       c
@@ -138,7 +140,7 @@ Program chainsim_p
   teqbm = tlongest ! without EV
 
   If (zstar .Ne. 0) Then
-     teqbm = 3.0*tlongest ! with excluded volume, it takes roughly 3 times
+     teqbm = 30.0*tlongest ! with excluded volume, it takes roughly 3 times
      ! to attain equilibrium even with init dist
   End If
 
@@ -147,7 +149,7 @@ Program chainsim_p
   Else
      tmax = emax/gdots
   End If
-     tmax = 15*t1rouse !!!! kiran 
+     tmax =5*t1rouse !!!! kiran 
    write (*,*) "trouse time is", t1rouse, "tmax is", tmax
   !_____________________________________________________________
   !        Initialization variable format expressions
@@ -167,7 +169,7 @@ Program chainsim_p
   End if
      
 !!$  Write(Format4 ,"(a,I3,a)") "(", 2*NProps+4,"(G11.4,1X))"
-  Write(Format42,"(a,I3,a)") "(", 2*eqprops+1, "(G11.6,1X))"
+  Write(Format42,"(a,I3,a)") "(", 2*eqprops+1, "(G22.17,1X))"
   Write(Format43,"(a,I3,a)") "(", 2*neqprops+2, "(G11.6,1X))"
 
 !!$  Write(Format5, "(a,I3,a)") "('#',A11,1X,", nsact, "(G11.4,2X))"
@@ -293,26 +295,25 @@ Program chainsim_p
     ! nsact = Nsamples
 
 
-     avgs = 0
-     errs = 0
+     avgs = 0.d0
+     errs = 0.d0
 
      !_____________________________________________________________
      !    Begin the loop for the blocks                            c
      !_____________________________________________________________
 
      trajectories: Do iblock = 1, nblock
-        samples = 0.0
+        samples = 0.d0
         
-        PosVecR = 0
+        PosVecR = 0.d0
         Call Initial_position(SType,Nbeads,sqrtb,PosVecR,nseed)
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!
 
 
-      FlowType = EQ
-       
+        FlowType = EQ
         Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
-             0.,tmax, deltseq, &
+             0._DBprec,tmax, deltseq, &
              hstar , zstar, dstar, sqrtb, Q0s,  &
              nseed, nsact, times, samples, phi )
 
@@ -335,7 +336,6 @@ Program chainsim_p
 
         avgs = avgs + samples
         errs = errs + samples*samples
-
      End Do trajectories
 
 
@@ -453,7 +453,7 @@ Program chainsim_p
              global_avgs(17,i), global_errs(17,i), & 
              global_avgs(11,i), global_errs(11,i), & 
              i = 1,nsact )
-
+      
      Else
         neqprops = 4
         Write (outunit,Format3) &

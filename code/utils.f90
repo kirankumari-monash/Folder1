@@ -1,8 +1,7 @@
 !!! Time-stamp: <utils.f90 11:46, 17 Mar 2004 by P Sunthar>
 
 !_______________________________________
-!  Contains general purpose utilities
-!_______________________________________
+!
 
 !!! $Log: utils.f90,v $
 !!! Revision 1.1  2004/01/29 06:40:09  pxs565
@@ -21,20 +20,21 @@ Subroutine Initial_position(SType,N,L0s,R,myseed)
   Integer, Intent (in) :: Stype
   Integer(k4b), Intent (in) :: N
   Integer(k4b), Intent (inout) :: myseed
-  Real, intent (in) :: L0s
-  Real, Intent (out), Dimension(:,:) :: R
+  Real (DBprec), intent (in) :: L0s
+  Real (DBprec), Intent (out), Dimension(:,:) :: R
 
   Integer, save :: varseed = 201235
 
   Integer mu, done
-  Real, parameter :: upbound = 2
-  Real modr,b2b(Ndim),rv,eqpr, rvchk, b
+  Real (DBprec), parameter :: upbound = 2.d0
+  Real (DBprec) modr,b2b(Ndim),rv,eqpr, rvchk
+  Real (DBprec) b
   
   Call GaussRand(Ndim*N,R,myseed)
 
 
 
-  R(:,1) = 0
+  R(:,1) = 0.D0
 
   ! intrinsic ran() modifies the seed for every call
   ! so use a separate varible seed, so that the ran_1 sequence is
@@ -53,11 +53,12 @@ Subroutine Initial_position(SType,N,L0s,R,myseed)
 
   Do mu = 2,N
      b2b = R(:,mu) ! * sqrt(sigma=1), gaussian dist betwn two adj beads
-
-
+    
+     !!!!!!!!!! Change Spring type
+     ! if (SType .ne. HOOK) then
      if (SType .ne. Fraenkel) then
-
         done = 0;
+       
         do while (done .ne. 1)
 
           ! rv = ran(varseed)
@@ -67,7 +68,8 @@ Subroutine Initial_position(SType,N,L0s,R,myseed)
            
            ! use another uniform random number to decide acceptance
            ! ie, accept only eqpr fraction at this r
-          ! rvchk = ran(varseed)
+           !rvchk = ran(varseed)
+          
             call Random_Number(rvchk)
            !write (*,*) rv, rvchk , eqpr
            if (rvchk .le. eqpr/upbound) done = 1
@@ -98,22 +100,23 @@ Subroutine GaussRand(N,GX,seed)
 
   Integer(k4b), Intent (in) :: N
   Integer(k4b), Intent (inout) :: seed
-  Real, Intent (out), Dimension(N) :: GX
+  Real (DBprec), Intent (out), Dimension(N) :: GX
 
-  Real rnd(2), x,y, rsq, fac
+  Real (DBprec) rnd(2)
+  Real (DBprec) x,y, rsq, fac
   Integer i,n2
   Real :: rtemp(N+1) 
 
   
   Do i = 1,N,2
-     rsq = 0.0
+     rsq = 0.d0
      Do While (rsq .Ge. 1.0  .Or.  rsq .Eq. 0.0)
         Call ran_1(2,rnd,seed)
-        x = 2*rnd(1) -1
-        y = 2*rnd(2) -1
+        x = 2.d0*rnd(1) -1.d0
+        y = 2.d0*rnd(2) -1.d0
         rsq = x*x + y*y
      End Do
-     fac = Sqrt(-2*Log(rsq)/rsq);
+     fac = Sqrt(-2.d0*Log(rsq)/rsq);
      rtemp(i) = x*fac  
      rtemp(i+1) = y*fac    
   End Do
@@ -130,7 +133,7 @@ Subroutine ran_1(n, X, idum)
   Implicit None
   Integer(k4b), Intent(inout) ::idum
   Integer(k4b), Intent(in) :: n
-  Real, Intent(inout) :: X(n)
+  Real (DBprec), Intent(inout) :: X(n)
   !---------------------------------------------------------------------c
   !     Random number generator based on procedure given in             c
   !     Numerical Recipes in Fortran 90, Chapter B7, pp. 1141-1143      c
@@ -173,7 +176,7 @@ Subroutine chbyshv (L, d_a, d_b, a)
   Use bspglocons
   Implicit None
   Integer L
-  Real d_a, d_b, a(0:MAXCHEB)
+  Real (DBprec) d_a, d_b, a(0:MAXCHEB)
   !---------------------------------------------------------------------c
   !     This routine calculates the Chebyshev coefficients for the      c
   !     Chebyshev polynomial approximation of a square root function.   c
@@ -185,7 +188,7 @@ Subroutine chbyshv (L, d_a, d_b, a)
 
 
   Integer j, k
-  Real xks(0:L)
+  Real (DBprec) xks(0:L)
 
 
   !     Calculate the shift factors
@@ -194,18 +197,18 @@ Subroutine chbyshv (L, d_a, d_b, a)
 
   !     Calculate the collocation points
   Do k = 0,L
-     xks(k) = Cos(PI*(k+0.5)/(L+1))/d_a -d_b/d_a
+     xks(k) = Cos(PI*(k+0.5d0)/(L+1))/d_a -d_b/d_a
   End Do
 
   !     Calculate the Chebyshev coefficients
-  a = 0.0
+  a = 0.d0
   Do j = 0,L
      Do k = 0,L
         a(j) = a(j)+(xks(k)**0.5)*Cos(j*(k+0.5)*PI/(L+1))
      End Do
-     a(j) = 2.0/(L+1)*a(j)
+     a(j) = 2.d0/(L+1)*a(j)
   End Do
-  a(0) = a(0)/2
+  a(0) = a(0)/2.d0
 
 End Subroutine chbyshv
 	
@@ -217,38 +220,39 @@ Subroutine maxminev_fi(n, A, maxev, minev)
   Use bspglocons
   Implicit None
   Integer n
-  Real A(:,:,:,:), maxev, minev
+  Real (DBprec) A(:,:,:,:), maxev, minev
   !---------------------------------------------------------------------c
   !     This routine approximates the maximum and minimum eigen values  c
   !     of a symmetric matrix nxn matrix A using Fixman's suggestion.   c
   !---------------------------------------------------------------------c
   Integer lda, incx, incy, i
-  Real F(n+1), G(n), alpha, beta, ddot
+  Real (DBprec) F(n+1), G(n), alpha, beta
+  Real (SNGL) sdot
+  Real (DOBL) ddot
 
-  F = 1.0
-  G = 0.0
+  F = 1.d0
+  G = 0.d0
 
   lda = n
-  alpha = 1.0
-  beta = 0.0
-  incx = 1
-  incy = 1
-
+  alpha = 1.d0
+  beta = 0.d0
+  incx = 1.d0
+  incy = 1.d0
+  
   Call dsymv('U',n,alpha,A,lda,F,incx,beta,G,incy)
   maxev = ddot(n, F, 1, G, 1)
-  maxev = 2.0*maxev/n
+  maxev = 2.d0*maxev/n
 
   !Forall (i = 1:n) F(i) = (-1.0)**i
   Do i = 1,n,2
-     F(i)   = -1.
-     F(i+1) =  1.
+     F(i)   = -1.d0
+     F(i+1) =  1.d0
   End Do
-  
 
   Call dsymv('U',n,alpha,A,lda,F,incx,beta,G,incy)
   minev = ddot(n, F, 1, G, 1)
-  minev = minev/2.0/n
-  !        write (*,*) maxev, minev
+  minev = minev/2.d0/n
+  ! write (*,*) maxev, minev
 
 End Subroutine maxminev_fi
 	
@@ -256,14 +260,15 @@ End Subroutine maxminev_fi
 	
 	
 Subroutine polish_poly_root(c,xin,atol)
+  Use bspglocons
   Implicit None
   ! use newton raphson to polish the root of a polynomial
   Integer, Parameter :: n=4 ! presently only for cubic
-  Real, Intent (in) :: c(n)
-  Real, Intent (inout) :: xin
-  Real, Intent (in) :: atol
+  Real (dbprec), Intent (in) :: c(n)
+  Real (dbprec), Intent (inout) :: xin
+  Real (dbprec), Intent (in) :: atol
 
-  Real ::  p, p1,x0,x
+  Real (dbprec) ::  p, p1,x0,x
 
   Integer i,iter
   Integer, Parameter :: IMAX = 30
@@ -281,12 +286,12 @@ Subroutine polish_poly_root(c,xin,atol)
      End Do
 
      !if (abs(p1) < atol) then ! f' = 0 is not solvable in newt-raph
-     If (Abs(p1) .Eq. 0.0) Then ! f' = 0 is not solvable in newt-raph
+     If (Abs(p1) .Eq. 0.d0) Then ! f' = 0 is not solvable in newt-raph
         !! for WLC, in this case f'' also = 0, therefore
         p1 = 6 * c(4) ! f''' 
         p1 = 6*p/p1
         ! note sign(a,b) returns sgn(b) * mod(a)
-        x = x - Sign(1.0,p1) * Abs(p1)**(1./3.)
+        x = x - Sign(1._DBprec,p1) * Abs(p1)**(1.d0/3.d0)
         !! we omit considering cases for ILC and FENE, as they
         !! donot seem to have this singularity
      Else
@@ -297,7 +302,7 @@ Subroutine polish_poly_root(c,xin,atol)
   End Do
   if (iter>IMAX) then
      !write (5,*) 'poly-root: loop exceeded'
-  end if
+     end if
   
 
   xin = x
@@ -305,11 +310,12 @@ End Subroutine polish_poly_root
 
 
 Subroutine numint(f,dx,nmin,nmax,nord,sumf)
+  Use bspglocons 
   Implicit None
 
-  Real, Intent(in), Dimension(:) :: f
-  Real, Intent(in) :: dx
-  Real, Intent(out) :: sumf
+  Real (DBprec), Intent(in), Dimension(:) :: f
+  Real (DBprec) , Intent(in) :: dx
+  Real (DBprec), Intent(out) :: sumf
   Integer, Intent (in) :: nmin, nmax,nord
 
 
@@ -328,19 +334,19 @@ Subroutine numint(f,dx,nmin,nmax,nord,sumf)
      Return
   End If
 
-  sumf = 0.
+  sumf = 0.d0
 
   Select Case (nord) 
   Case (1) ! trapezoidal rule
-     sumf = 0.5 * (f(nmax) + f(nmin))
+     sumf = 0.5d0 * (f(nmax) + f(nmin))
 
   Case(2)
-     sumf = 5./12 * (f(nmin) + f(nmax)) + &
-          13./12 *(f(nmin+1) + f(nmax-1)) 
+     sumf = 5.d0/12.d0 * (f(nmin) + f(nmax)) + &
+          13.d0/12.d0 *(f(nmin+1) + f(nmax-1)) 
   Case (3)
-     sumf = 3./8 * (f(nmin) + f(nmax)) + &
-          7./6 *(f(nmin+1) + f(nmax-1)) + &
-          23./24 *(f(nmin+2) + f(nmax-2))
+     sumf = 3.d0/8.d0 * (f(nmin) + f(nmax)) + &
+          7.d0/6.d0 *(f(nmin+1) + f(nmax-1)) + &
+          23.d0/24.d0 *(f(nmin+2) + f(nmax-2))
   End Select
 
   Do j = nmin+nord, nmax-nord
@@ -351,9 +357,10 @@ Subroutine numint(f,dx,nmin,nmax,nord,sumf)
 End Subroutine numint
 
 subroutine meanerr(vec,mean,err)
-  real, intent(in) :: vec(:)
-  real, intent(out) :: mean
-  real, intent(out) :: err ! standard error of mean
+  Use bspglocons
+  real (DBprec) , intent(in) :: vec(:)
+  real (DBprec) , intent(out) :: mean
+  real (DBprec), intent(out) :: err ! standard error of mean
 
   integer n
 
@@ -362,7 +369,6 @@ subroutine meanerr(vec,mean,err)
 
   ! though the following is correct, 
   ! err = sqrt((sum(vec*vec) - mean*mean*n)/(n-1))
-  ! it does not always numerically evaluate to a quantity > 0 
   ! for very small errors, such as in the case of diffusivity.  
   ! so use the sure shot formula.
   err = 2*sqrt(sum((vec-mean)*(vec-mean))/(n-1)/n)
@@ -374,30 +380,32 @@ end subroutine meanerr
 
 
 function normeqpr(Stype, r, b)
+  Use bspglocons
   implicit none
   Integer, intent (in) :: Stype
-  Real, intent (in) :: b, r
-  Real  normeqpr
+  Real (DBprec), intent (in) :: r, b
+  Real (DBprec) normeqpr
 
-  Real expphi
+  Real (DBprec) expphi
   external expphi
 
   Integer, save :: norm_computed = 0
-  Real   , save :: norm_b, bsav
+  Real (DBprec)  , save :: norm_b, bsav
 
   Integer , parameter :: Ln = 21 ! 21 always see below for X,W data
-  real (8) X(Ln), W(Ln), scratch(Ln)
-  real (8)  endpts(2)
+  real (DOBL) X(Ln), W(Ln), scratch(Ln)
+  real (DOBL)  endpts(2)
 
   Integer n
-  real  xfact,rg, fb , M
+  real (DBprec)  xfact,rg, fb , M
 
   if ( norm_computed .eq. 0  .and. bsav .ne. b) then
 
      !! generate the gauss abscissa and weights for legendre
      !call gaussq(1, Ln, 0, 0, 0, endpts, scratch, X, W) ;
      
-     !! generated from c code
+
+       !! generated from c code
      X(01) = -0.993752170620389;   W(01) = 0.016017228257774
      X(02) = -0.967226838566306;   W(02) = 0.03695378977085309
      X(03) = -0.920099334150401;   W(03) = 0.05713442542685689
@@ -419,10 +427,9 @@ function normeqpr(Stype, r, b)
      X(19) = 0.920099334150401;   W(19) = 0.05713442542685797
      X(20) = 0.967226838566306;   W(20) = 0.03695378977085323
      X(21) = 0.993752170620389;   W(21) = 0.01601722825777395
-     
 
 
-
+    
      M = 18  ! some large number, obtained by trial and error
      
      ! limit the upper bound of M
@@ -430,8 +437,8 @@ function normeqpr(Stype, r, b)
 
      xfact = sqrt(2*M/b)
 
-     norm_b = 0
-     fb = 0
+     norm_b = 0.d0
+     fb = 0.d0
      do n=1,Ln
         rg = (X(n) + 1)/2 * xfact
         norm_b = norm_b +  W(n) * expphi(Stype,rg,b) * rg * rg
@@ -455,8 +462,8 @@ function expphi(Stype, r, b)
   use bspglocons
   Implicit none
   Integer, intent (in) :: Stype
-  Real, intent (in) :: r, b
-  Real  expphi
+  Real (DBprec) , intent (in) :: r, b
+  Real (DBprec) expphi
 
   select case (Stype)
   case (HOOK)
@@ -473,12 +480,12 @@ end function expphi
 function  lam1_th(hs, N)
   use bspglocons
   implicit none
-  Real lam1_th
-  Real,  intent (in) :: hs
-  Integer,  intent (in) :: N
+  Real (DBprec) lam1_th
+  Real (DBprec) , intent (in) :: hs
+  Integer ,  intent (in) :: N
 
 
-  real s,b,aj
+  real (DBprec) s,b,aj
 
 
   b   = 1 - 1.66*hs**0.78;
@@ -493,8 +500,8 @@ subroutine get_kappa(t,K)
   use bspglocons
   use Flowvars
   Implicit none
-  Real, intent (in) :: t
-  Real, intent (out), dimension(:,:) :: K
+  Real (DBprec), intent (in) :: t
+  Real (DBprec), intent (out), dimension(:,:) :: K
 
   
   Real omgs,var,T0

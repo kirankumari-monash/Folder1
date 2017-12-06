@@ -16,8 +16,8 @@ Subroutine chain_props(NBeads, Rbead, F, props)
   use bspglovars
   Implicit None
   Integer, intent (in) :: NBeads
-  Real, intent (in), dimension(:,:)  :: Rbead, F
-  Real, intent (out),dimension(:) ::props
+  Real (DBprec), intent (in), dimension(:,:)  :: Rbead, F
+  Real (DBprec), intent (out),dimension(:) ::props
 
   !---------------------------------------------------------------------
   !    This routine estimates the contributions of a single bead-spring     
@@ -50,13 +50,13 @@ Subroutine chain_props(NBeads, Rbead, F, props)
   !    props(14) ---  radius of gyration
   !--------------------------------------------------------------------
   Integer i, j, k, mu, nu
-  Real R(Ndim,NBeads), Rc(Ndim),dist(Ndim)
+  Real (DBprec) R(Ndim,NBeads), Rc(Ndim),dist(Ndim)
 
   
      
   
 
-  props = 0.0
+  props = 0.D0
   R = RBead
 
   !     Calculation of square of end-to-end vector
@@ -69,7 +69,7 @@ Subroutine chain_props(NBeads, Rbead, F, props)
   !     Calculation of shape tensor
 
   !       First, calculate position of centre of mass
-  Rc = 0.0
+  Rc = 0.D0
   Do mu = 1, NBeads
      Rc = Rc + R(:,mu)
   End Do
@@ -116,7 +116,7 @@ Subroutine chain_props(NBeads, Rbead, F, props)
 
   ! prop (14)
   ! radius of gyration
-  props(14) = 0.0
+  props(14) = 0.D0
   Do mu = 1, NBeads
      props(14) = props(14) + sum(R(:,mu)*R(:,mu))
   end Do
@@ -141,9 +141,9 @@ Subroutine time_correl(NBeads, R, F, t0, t, correl)
   use bspglovars
   Implicit None
   Integer, intent (in) :: NBeads
-  Real, intent (in), dimension(:,:)  :: R, F
-  Real, intent (out)  :: correl
-  Real, intent (in) :: t0, t
+  Real (DBprec), intent (in), dimension(:,:)  :: R, F
+  Real (DBprec), intent (out)  :: correl
+  Real (DBprec), intent (in) :: t0, t
   !Real R(3*NBeads), F(3*NBeads), correl(:), t0, t
 
   !--------------------------------------------------------------------c
@@ -157,20 +157,20 @@ Subroutine time_correl(NBeads, R, F, t0, t, correl)
   !                    linear viscoelastic properties in simple shear  c
   !--------------------------------------------------------------------c
   Integer  nu, dir
-  Real Rc(Ndim), temp
-  Real, Save :: t0props 
+  Real (DBprec) Rc(Ndim), temp
+  Real (DBprec), Save :: t0props 
 
-  correl = 0.0
+  correl = 0.D0
 
   !     First, calculate position of centre of mass
-  Rc = 0.0
+  Rc = 0.D0
   Do nu = 1, NBeads
      Rc = Rc + R(:,nu)
   End Do
   Rc = Rc/NBeads
 
   !     Calculation of Sxy
-  temp = 0.0
+  temp = 0.D0
   dir = 1
   Do nu = 1,NBeads
      temp = temp + (R(dir,nu)-Rc(dir)) * F(dir+1,nu)

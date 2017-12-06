@@ -4,17 +4,24 @@
 # gfortran
 #
 
-CC = cc
-FC90 = gfortran
-FC = g77
+#CC = cc
+#FC90 = gfortran
+#FC = g77
+
+CC = icc
+FC90 = ifort
+MPIF90 = mpif90
+FC = ifort
+
 
 ## optimisation level
-OPT = -O3
+OPT = -O3 -fast
 #OPT = -fast
 #OPT = -cm -O3  -xW -w95 -ipo -tpp7
 #OPT = -cm -w95
 #db = -g
-
+#DEBUG = -mcmodel=large  ## will increase the execution time
+PRECISION = -r8
 # for lc at apac
 #LAMHOME=/opt/lam-6.5.8/Intel
 #INCLUDES = -I$(LAMHOME)/include
@@ -23,9 +30,10 @@ OPT = -O3
 #MPIHOME = /usr/local/mpich-1.2.5-i-gm
 #INCLUDES = -I$(MPIHOME)/include
 
-FFLAGS = -fbounds-check -fdefault-real-8
+#FFLAGS = -fbounds-check -fdefault-real-8
 ## Compiler flags
-#FFLAGS = $(db) $(INCLUDES) $(OPT)\
+#FFLAGS = -O3 -fast -CB -r8 #-mcmodel=large
+FFLAGS = $(db) $(INCLUDES) $(OPT) $(PRECISION) $(DEBUG)\
 # -warn unused -warn nousage -hpfwarn hpf \
 # -warn declarations -warn argument_checking
 

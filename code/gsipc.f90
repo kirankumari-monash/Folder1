@@ -27,8 +27,8 @@ Contains
     Implicit None
     ! Calling arguments
     Integer, Intent(in)  :: N
-    Real, Intent(in)  :: R(:,:)
-    Real, Intent(out) :: b2b(:,:,:)
+    Real (DBprec), Intent(in)  :: R(:,:)
+    Real (DBprec), Intent(out) :: b2b(:,:,:)
 
 !!!_________________________________________________________|
 !!! This routine returns the vector one bead to another bead
@@ -55,25 +55,25 @@ Contains
     Implicit None
     ! calling arguments
     Integer, Intent (in)  :: N
-    Real, Intent (in)  :: b2bvec(:,:,:)
-    Real, Intent (out) :: deltaR(:,:) 
+    Real (DBprec), Intent (in)  :: b2bvec(:,:,:)
+    Real (DBprec), Intent (out) :: deltaR(:,:) 
 !!!_________________________________________________________|
 !!! This subroutine returns the magnitude of each of the bead 
 !!! to bead vector
 !!!_________________________________________________________|
 
     Integer mu,nu,i
-    Real r12(Ndim),modr
+    Real (DBprec) r12(Ndim),modr
 
 
-    deltaR = 0
+    deltaR = 0.d0
 
     ! note that we cant use a forall since dot_product is a
     ! transformational function
     Do nu = 2,N
        Do mu = 1,nu-1
           r12 = b2bvec(:,mu,nu)
-          modr = 0.0
+          modr = 0.d0
           Do i=1,Ndim
              modr = modr + r12(i) * r12(i)
           End Do
@@ -86,11 +86,11 @@ Contains
 
   Subroutine tensor_prod_of_vec(alpha,vec,tensor)
     Implicit None
-    Real, Intent (in) :: alpha
-    Real, Intent (in) :: vec(:)
-    Real, Intent (out) ::  tensor(:,:)
+    Real (DBprec), Intent (in) :: alpha
+    Real (DBprec), Intent (in) :: vec(:)
+    Real (DBprec), Intent (out) ::  tensor(:,:)
     Integer i,j
-    Real temp
+    Real (DBprec) temp
 
     Do j = 1,Ndim
        Do i = 1,j
@@ -110,21 +110,21 @@ Module BSpModel
   Implicit None
 
   ! These are paramters that will be used  by the following procedures
-  Real sqrtb
+  Real (DBprec) sqrtb
 
   ! paramters for EV
-  Real zsbyds5,pt5bydssq
-  Real LJa,LJb,LJpa,LJpb,Rmin,Rcutg,Rcutp
+  Real (DBprec) zsbyds5,pt5bydssq
+  Real (DBprec) LJa,LJb,LJpa,LJpb,Rmin,Rcutg,Rcutp
 
 
 Contains 
 
   Subroutine force_sans_hookean(sptype,sr,ff,Q0s)
     Integer, Intent (in) :: sptype 
-    Real, Intent (in) :: sr, Q0s
-    Real (DBprec), Intent (out) :: ff
+    Real (DBprec), Intent (in) :: sr, Q0s
+    Real (DOBL), Intent (out) :: ff
 
-    Real (DBprec) r
+    Real (DOBL) r
 
     r = sr 
     ! quick way to do double prec calculation.  otherwise, the complete 
@@ -133,48 +133,49 @@ Contains
     ! compute the force factor, ff
     Select Case (sptype)
     Case (HOOK) ! Hookean
-       ff = 1.
+       ff = 1.d0
 
     Case (FENE) ! Warner Spring
-       ff = 1./(1 - r*r)
-
+       ff = 1.d0/(1.d0 - r*r)
+     
     Case (ILC)  ! Inverse Langevin, Pade approx 
-       ff = (3-r*r)/(1 - r*r)/3.
+       ff = (3-r*r)/(1 - r*r)/3.d0
 
     Case (WLC) ! Worm-like Chain, Marko-Siggia interpolation
        ff = 1./(6*r) * ( 4*r+ 1./(1-r)/(1-r) - 1)
     Case (Fraenkel)! Fraenkel spring
-       ff = (1.-(Q0s/r))
+       ff = (1.d0 -(Q0s/r))
         
-
+   
     End Select
+
   End Subroutine force_sans_hookean
 
   Subroutine Spring_force(sptype,N,b2bvec,dr,Fs,Q0s)
     Integer, Intent (in) :: sptype
     Integer, Intent (in)  :: N
-    Real, Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
-    Real, Intent (in)  :: dr(:,:)      ! Nbeads x Nbeads
-    Real, Intent (out) :: Fs(:,:)      ! Ndim x Nbeads
-    Real, Intent (in) :: Q0s 
+    Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
+    Real (DBprec), Intent (in)  :: dr(:,:)      ! Nbeads x Nbeads
+    Real (DBprec), Intent (out) :: Fs(:,:)      ! Ndim x Nbeads
+    Real (DBprec), Intent (in) :: Q0s 
 !!! Purpose:
     ! computes the net spring force on a bead due to 
     ! connector springs of neighbouring beads
 
     Integer nu
-    Real r , Q0sp! = |Q| / sqrtb
-    Real (DBprec) Fcnu(Ndim), Fcnu1(Ndim), nonhook
+    Real (DBprec) r , Q0sp! = |Q| / sqrtb
+    Real (DOBL) Fcnu(Ndim), Fcnu1(Ndim), nonhook
 
-    Fs  = 0.0
+    Fs  = 0.d0
 
-    Fcnu1 = 0.0 ! Fc of nu-1
+    Fcnu1 = 0.d0 ! Fc of nu-1
 
     Do nu = 1,N-1 ! over each of the connector
 
       ! r = dr(nu,nu+1)/sqrtb ! only upper diagonal
         r = dr(nu,nu+1)/sqrtb
         Q0sp = Q0s/sqrtb
-       If (Abs(r - 1.0) .Lt. MYEPS) r = 1 - MYEPS
+       If (Abs(r - 1.d0) .Lt. MYEPS) r = 1 - MYEPS
 
        Call force_sans_hookean(sptype,r,nonhook,Q0sp)
 
@@ -194,33 +195,33 @@ Contains
 
   Subroutine solve_implicit_r(sptype,dtby4,gama,natscl,r,ff)
     Integer, Intent (in) :: sptype
-    Real, Intent (in) :: dtby4, gama, natscl
-    Real, Intent (out) :: r
-    Real (DBprec), Intent (out) :: ff
+    Real (DBprec), Intent (in) :: dtby4, gama, natscl
+    Real (DBprec), Intent (out) :: r
+    Real (DOBL), Intent (out) :: ff
 
     !! Purpose
     ! solves the equation r ( 1 + dt/4 ff ) == gama
     ! where ff depends on spring force law F = H Q ff,
     ! for r and returns, r and ff(r)
 
-    Real coeff(4),denom
+    Real (DBprec) coeff(4),denom
 
     ! set up the polynomial equation (cubic), and the guess for
     ! gama >> 1, obtained by the asymptotic behaviour
 
-    coeff(4) = 1.0
+    coeff(4) = 1.d0
 
     Select Case (sptype)
     Case (HOOK) ! Hookean
-       r = gama/(1.+dtby4)
-       ff = 1.
+       r = gama/(1.d0 +dtby4)
+       ff = 1.d0
        Return
 
     Case (FENE) ! FENE
        coeff(1) = gama
-       coeff(2) = -(1. + dtby4)
+       coeff(2) = -(1.d0 + dtby4)
        coeff(3) = -gama
-       r = 1 - dtby4/2/gama 
+       r = 1.d0 - dtby4/2.d0/gama 
 
     Case (ILC) ! ILC
        denom = 3. + dtby4
@@ -238,14 +239,14 @@ Contains
 
     Case (Fraenkel) ! Fraenkel spring
        r = (gama + (dtby4*natscl))/(1.+dtby4)
-       ff = 1.-(natscl/r)
+       ff = 1.d0-(natscl/r)
        Return
 
     End Select
 
     ! the Hookean guess is same for all the force laws
     If (gama < 1.0) Then 
-       r = gama/(1.+dtby4)  
+       r = gama/(1.d0 +dtby4)  
     End If
 
     ! all the common forces laws yeild a cubic in the implicit form
@@ -270,18 +271,18 @@ Contains
 
 !!! This routine returns excluded volume force
     Integer, intent (in) :: N
-    Real, Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
-    Real, Intent (in)  :: dr(:,:)      ! Nbeads x Nbeads
-    Real, Intent (out) :: Fev(:,:)     ! Ndim x Nbeads 
-    Real, Intent (in) :: phi(:,:)
+    Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
+    Real (DBprec), Intent (in)  :: dr(:,:)      ! Nbeads x Nbeads
+    Real (DBprec), Intent (out) :: Fev(:,:)     ! Ndim x Nbeads 
+    Real (DBprec), Intent (in) :: phi(:,:)
     
     Integer nu,mu
-    Real Fpair12(Ndim)
-    Real :: alpha, beta 
-    Fev  = 0.0
-    alpha = 3.1730728
-    beta = -0.8562286
-    If (LJa .Gt. 0.0) Then
+    Real (DBprec) Fpair12(Ndim)
+    Real (DBprec) :: alpha, beta 
+    Fev  = 0.d0
+    alpha = 3.1730728678d0
+    beta = -0.856228645d0
+    If (LJa .Gt. 0.d0) Then
        ! caution donot use forall here, i means F12 will b evaluated for 
        ! all the values of mu,nu and then assigned, which is not what we 
        ! want.  The rule to use forall statements is that lhs must be 
@@ -297,13 +298,13 @@ Contains
              ! convention followed: force is positive for attraction
            If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
                 Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(dr(mu,nu)**(LJpa+2.))-LJb/(dr(mu,nu)**(LJpb+2.)))
+                   *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
                 Fev(:,mu) = Fev(:,mu) + Fpair12
                 Fev(:,nu) = Fev(:,nu) - Fpair12
          
             Else If (dr(mu,nu) .lt. Rmin) Then
                Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(Rmin**(LJpa+2.))-LJb/(Rmin**(LJpb+2.)))
+                   *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
                 Fev(:,mu) = Fev(:,mu) + Fpair12
                 Fev(:,nu) = Fev(:,nu) - Fpair12
 
@@ -340,25 +341,25 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   Implicit None
 
   Integer, Intent(in) :: NBeads
-  Real, Intent (inout), Dimension(:,:) :: R_Bead ! Initial positions of Beads
+  Real (DBprec), Intent (inout), Dimension(:,:) :: R_Bead ! Initial positions of Beads
 
   Integer, Intent (in) :: spring_type ! Spring force law type
   ! Hookean = 1, FENE = 2, ILC = 3, WLC = 4
 
 
-  Real, Intent (in) :: tcur,tmax,Delts  ! Integration time interval specs
+  Real (DBprec), Intent (in) :: tcur,tmax,Delts  ! Integration time interval specs
 
-  Real,  Intent (in) :: Hstar         ! HI parameter (non-dim)
-  Real,  Intent (in) :: Zstar,Dstar   ! EV parameters (non-dim)
-  Real,  Intent (in) :: L0s           ! finite ext., param sqrt(b)
-  Real,  Intent (in) :: Q0s
+  Real (DBprec),  Intent (in) :: Hstar         ! HI parameter (non-dim)
+  Real (DBprec),  Intent (in) :: Zstar,Dstar   ! EV parameters (non-dim)
+  Real (DBprec),  Intent (in) :: L0s           ! finite ext., param sqrt(b)
+  Real (DBprec),  Intent (in) :: Q0s
 
   Integer (k4b), Intent (inout) :: seed1 ! seed for rnd number
 
   Integer, Intent(in) :: Nsamples     ! Number of sampling points
-  Real,  Intent (in), Dimension(:) :: times    ! Sampling instances
-  Real, Intent (inout), Dimension(:,:) :: samples
-  Real, Intent (in), Dimension(:,:) :: phi
+  Real (DBprec),  Intent (in), Dimension(:) :: times    ! Sampling instances
+  Real (DBprec), Intent (inout), Dimension(:,:) :: samples
+  Real (DBprec), Intent (in), Dimension(:,:) :: phi
 
 
 !!!_________________________________________________________|
@@ -373,12 +374,14 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 !!!_________________________________________________________|
 
   ! external BLAS functions
-  Real dnrm2,ddot
+   !  Real snrm2,sdot
+  Real (SNGL) snrm2, sdot
+  Real (DOBL) dnrm2, ddot
 
-  Real time, fd_err, fd_err_max, om1, om2, rs,&
+  Real (DBprec) time, fd_err, fd_err_max, om1, om2, rs,&
        rsbyhs, hsbyrs, hsbyrs2, L_max, L_min, d_a, d_b,&
        gama_mag, lt_err, dtsby4, pcerr, delx2
-  Real &
+  Real (DBprec)&
        ! various scratch storages for position vector
        cofm(Ndim), & ! center of mass
        R_pred(Ndim,NBeads), &
@@ -409,7 +412,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
        diffUps(Ndim,NBeads-1)
   
   ! some connector forces and related requiring higher precision
-  Real (DBprec) ff,  &
+  Real (DOBL) ff,  &
        F_con_mu(Ndim), &    ! connector force between beads
        F_con_mu1(Ndim)    ! connector force, save for mu-1 
 
@@ -417,13 +420,14 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
   !     Other definitions...
   Integer i,  l, mu, nu, ncheb, ncheb_old, isample, lt_count
-  Real temp1, sqrt2inv, TPI, RPI, TRPI, &
-       C1, C2, C3, C4, C5, C6, C7, RPI3by4 , r 
+  Real (DBprec) temp1, sqrt2inv, TPI, RPI, TRPI, &
+       C1, C2, C3, C4, C5, C6, C7, RPI3by4 
+  Real (DBprec) r 
 
 
   !     Definitions for the BLAS-2 routine "ssymv"
   Integer Ndof, lda, ldadiff, incx, incy
-  Real alpha, beta
+  Real (DBprec) alpha, beta
 
   
   sqrtb = L0s ! sqrtb will be needed by other modules
@@ -432,27 +436,27 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   zsbyds5 = Zstar/(Dstar**5.0)
   pt5bydssq = 0.5/(Dstar*Dstar)
     
-  LJpa = 12.0  !LJ purely repulsive interaction potential power.
-  LJpb = 6.0  !LJ purely attractive interaction potential power.
+  LJpa = 12.D0  !LJ purely repulsive interaction potential power.
+  LJpb = 6.D0  !LJ purely attractive interaction potential power.
   LJa  = LJpa*Zstar*(Dstar**LJpa)
   LJb  = LJpb*Zstar*(Dstar**LJpb)
-  Rmin = 0.7*Dstar
-  Rcutg = Dstar*(2.0**(1.0/6.0))
-  Rcutp = 1.5*Dstar
+  Rmin = 0.7D0*Dstar
+  Rcutg = Dstar*(2.D0**(1.D0/6.D0))
+  Rcutp = 1.5D0*Dstar
 
 
-  sqrt2inv = 1.0/(2.0**0.5)
-  TPI = 2.0*PI
+  sqrt2inv = 1.d0/(2.d0**0.5d0)
+  TPI = 2.d0*PI
   RPI = Sqrt(PI)
-  TRPI = 2.0*RPI
-  C1 = TPI/3.0
-  C2 = 1.0
-  C3 = 0.75/RPI*0.375 !C3 = 9./32/RPI
-  C4 = 8.0*PI
-  C5 = 14.14855378
-  C6 = 1.21569221
-  C7 = 0.09375/RPI
-  RPI3by4 = RPI*0.75
+  TRPI = 2.d0*RPI
+  C1 = TPI/3.d0
+  C2 = 1.d0
+  C3 = 0.75d0/RPI*0.375d0 !C3 = 9./32/RPI
+  C4 = 8.d0*PI
+  C5 = 14.14855378d0
+  C6 = 1.21569221d0
+  C7 = 0.09375d0/RPI
+  RPI3by4 = RPI*0.75d0
 
 
   incx = 1
@@ -460,31 +464,31 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   Ndof = Ndim*NBeads  ! degrees of freedom
   lda = Ndof
 
-  fd_err_max = 0.0025 
-  pcerr = 0.0
+  fd_err_max = 0.0025d0 
+  pcerr = 0.0d0
 
 
-  delta_R = 0.0
+  delta_R = 0.0d0
 
 
-  Diffusion_sup = 0.0
+  Diffusion_sup = 0.0d0
   ! diagonal elements
   Forall (mu = 1:Nbeads, i = 1:Ndim )
-     Diffusion_sup(i,mu,i,mu) = 1.0
+     Diffusion_sup(i,mu,i,mu) = 1.d0
   End Forall
 
 
   !     Get initial estimates of L_max and L_min using
   !     Kroeger et al's approx. of Zimm theory's preds.;
   !     the number of Chebyshev terms, and the Chebyshev coefficients
-  L_max = 2*(1 + PI*Sqrt(Dble(NBeads))*Hstar)
-  L_min = (1 - 1.71*Hstar)/2     ! Note Hstar < 0.58
-  ncheb = Int(Sqrt(L_max/L_min)+0.5)+1
+  L_max = 2.d0*(1.d0 + PI*Sqrt(Dble(NBeads))*Hstar)
+  L_min = (1.d0 - 1.71d0*Hstar)/2     ! Note Hstar < 0.58
+  ncheb = Int(Sqrt(L_max/L_min)+0.5d0)+1
   ncheb_flag = .False.
-  d_a = 2/(L_max-L_min)
+  d_a = 2.d0/(L_max-L_min)
   d_b = -(L_max+L_min)/(L_max-L_min)
   Call chbyshv(ncheb, d_a, d_b, cheba)
-  DelS = 0.0      
+  DelS = 0.d0      
 
   isample = 1
   delx2 = 0
@@ -497,10 +501,10 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
 
 
-  Overtime: Do While (time.Le.Tmax+Delts/2)
+  Overtime: Do While (time.Le.Tmax+Delts/2.d0)
 
      ! find the center of mass
-     cofm = 0.0
+     cofm = 0.d0
      Do mu = 1, NBeads
         cofm = cofm + R_bead(:,mu)
      End Do
@@ -571,7 +575,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      If (Nsamples.Gt.0) Then
         ! ideally it shud b delts/2, but owing to precision errors
         ! we keep it slighly greater than 0.5
-        If(Abs(time-times(isample)).Le.Delts*0.51) Then
+        If(Abs(time-times(isample)).Le.Delts*0.51d0) Then
            Call chain_props (NBeads, R_Bead, F_tot, samples(1:14,isample))
 
            ! Save information on the error between the predictor
@@ -585,7 +589,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            End If
 
            ! Diffusivity
-           If (time > 0.0) samples(17,isample) = delx2/2/Ndim/time
+           If (time > 0.0d0) samples(17,isample) = delx2/2/Ndim/time
 
 
            isample = isample + 1
@@ -600,9 +604,9 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      !____________________________________________________________________|
 
      !Generate the random vector X_0
-     X_0 = 0.0
+     X_0 = 0.d0
      Call ran_1(Ndof, X_0, seed1)
-     X_0 = X_0 - 0.5
+     X_0 = X_0 - 0.5d0
      X_0 = (X_0*X_0*C5 + C6)*X_0! Element-wise multiplications
 
      ! Has check for deviation from fluctuation-dissipation theorem
@@ -626,8 +630,8 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
            ! Calculate the second Chebyshev vector            
            X_l_1 = X_0
-           alpha = 1.0
-           beta = 0.0
+           alpha = 1.D0
+           beta = 0.D0
 
            ! BLAS2 symmetric matrix-vector multiplication
            Call dsymv('U', Ndof, alpha,Dp_sym_up,lda,  X_l_1,incx, &
@@ -637,13 +641,12 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            DelS = DelS + cheba(1)*X_l
 
            Do l = 2,ncheb
-              alpha = 2.0
-              beta = 0.0
+              alpha = 2.D0
+              beta = 0.D0
               Call dsymv('U', Ndof, alpha,Dp_sym_up,lda, X_l,incx,  &
                    beta,X_lp1,incy)
               X_lp1 = X_lp1-X_l_1
               X_l_1 = X_l
-
 
               ! The l-th Chebyshev vector
               X_l = X_lp1
@@ -658,8 +661,8 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
            If (.Not.fd_check) Then
               fd_err = ddot(Ndof, DelS, 1, DelS, 1) ! BLAS-1 function
-              alpha = 1.0
-              beta = 0.0
+              alpha = 1.D0
+              beta = 0.D0
 
               !Use D:X_0X_0 = X_0.D.X_0 
               !Get D.X_0 first, and then get the dot product of X_0 with the
@@ -701,13 +704,14 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
 
      If (Hstar.Gt.0) Then
-        alpha = 0.25*Delts
-        beta = 0.0
-        ! Assigns DR_pred <- 0.25*Delts* D.F      
+        alpha = (2.5D0 - 1)*Delts
+        beta = 0.D0
+        
         Call dsymv('U', Ndof,alpha,Diffusion_sup,lda, F_tot,incx, &
-             beta,DR_pred,incy)   
+              beta,DR_pred,incy)
+        
      Else
-        DR_pred = 0.25 * Delts * F_tot
+        DR_pred = 0.25d0 * Delts * F_tot
      End If
 
 
@@ -726,7 +730,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      !____________________________________________________________________|
 
      ! initialise with part of Eq (18)
-     Ups_pred = R_Bead + 0.5*DR_pred + sqrt2inv*DelS
+     Ups_pred = R_Bead + 0.5d0*DR_pred + sqrt2inv*DelS
 
      If (Zstar > 0) Then
         ! Calculate distances between beads using R_pred
@@ -737,20 +741,22 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
         ! Calculate D.FEV using R_pred and update
         If (Hstar.Gt.0) Then
-           alpha = 0.125*Delts      ! The prefactor is 1/8 and not 1/4
-           beta = 1.0               ! Add to existing
-           Call dsymv('U', Ndof, alpha,Diffusion_sup,lda, F_ev,incx,  &
+           alpha = 0.125D0*Delts      ! The prefactor is 1/8 and not 1/4
+           beta = 1.D0               ! Add to existing
+        
+          Call dsymv('U', Ndof, alpha,Diffusion_sup,lda, F_ev,incx,  &
                 beta,Ups_pred,incy) 
+        
         Else
-           Ups_pred = Ups_pred + 0.125 * Delts * F_ev 
+           Ups_pred = Ups_pred + 0.125d0 * Delts * F_ev 
         End If
      End If
 
      !        Calculate the 0.5*Delts*K.R_pred vector 
 
      ! Add the K.R vector
-      call get_kappa(time+delts,kappa)
-      Ups_pred = Ups_pred + 0.5 * Delts * Matmul(kappa,R_pred) 
+        call get_kappa(time+delts,kappa)
+        Ups_pred = Ups_pred + 0.5 * Delts * Matmul(kappa,R_pred) 
 
      ! Eq (18) is completely assembled now
 
@@ -784,12 +790,12 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
      lt_count = 0
 
-     dtsby4 = Delts/4.0
+     dtsby4 = Delts/4.0D0 
 
 
      Keepdoing: Do
 
-        F_con_mu1 = 0.0
+        F_con_mu1 = 0.d0
 
         oversprings: Do mu = 1,NBeads-1
 
@@ -803,17 +809,17 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            !          corrector Q for all beads > mu
 
            If ( Hstar.Gt.0 ) Then
-              gama_mu = 0.125*Delts* &
+              gama_mu = 0.125d0*Delts* &
                    Matmul( &
                    Reshape(diffD(:,mu,:,:),(/ Ndim, Ndim*Nbeads /) ),  &
                    Reshape(F_spring,             (/ Ndim*Nbeads /)) &
                    )
            Else
-              gama_mu  = 0.125*Delts*(F_spring(:,mu+1) - F_spring(:,mu))
+              gama_mu  = 0.125d0*Delts*(F_spring(:,mu+1) - F_spring(:,mu))
            End If
 
            ! the remaining terms on the RHS of Eq.(20)
-           gama_mu = gama_mu + diffUps(:,mu) + 0.25 * F_con_mu * Delts 
+           gama_mu = gama_mu + diffUps(:,mu) + 0.25d0 * F_con_mu * Delts 
 
            gama_mag = dnrm2(Ndim,gama_mu,1) ! BLAS single normal two
 
@@ -845,7 +851,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
         End Do oversprings
 
         Rtemp = R_corr - R_pred
-        !lt_err = snrm2(Ndof,Rtemp,1)/NBeads
+        !lt_err = dnrm2(Ndof,Rtemp,1)/NBeads
         lt_err = dnrm2(Ndof,Rtemp,1)/dnrm2(Ndof,R_Bead,1)
 
         lt_count = lt_count + 1
@@ -858,7 +864,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      End Do Keepdoing
 
      if (lt_count > 10*NBeads) write (*,1024) lt_count, Delts , Gdots*time
-1024 format ('Loop exceeded ', I3, ' for dt = ', F11.4, ' at strain ', G11.4)
+1024 format ('Loop exceeded ', I4, ' for dt = ', F11.4, ' at strain ', G11.4)
 
 
      ! Final Major updates, new position vector and time

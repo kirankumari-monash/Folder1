@@ -5,7 +5,7 @@
        Integer, Parameter :: k4b = Selected_int_kind(9)
        Integer, Parameter :: SNGL = SELECTED_REAL_KIND(4)
        INTEGER, PARAMETER :: DOBL = SELECTED_REAL_KIND(8)
-       INTEGER, PARAMETER :: FPREC = SNGL
+       INTEGER, PARAMETER :: FPREC = DOBL
        integer :: i, j, k, l
        REAL (FPREC) :: X, A, B, NUM, DEN, ANS1, c, num1, num2
        !real(8),  parameter :: PI  = 4 * atan (1.0_8)
@@ -13,7 +13,7 @@
        real(FPREC) :: xx(N,N), YY(N,N)
        Do i =1, N
          DO j = 1,N
-            XX(i,j) = 1.  ! write value of phi, which u want
+            XX(i,j) = 0.8d0  ! write value of phi, which u want
          END DO
        END DO
        OPEN (UNIT=11,file="phi.dat",status="unknown")
