@@ -141,7 +141,7 @@ Program chainsim_p
   teqbm = tlongest ! without EV
 
   If (zstar .Ne. 0) Then
-     teqbm = 30.0*tlongest ! with excluded volume, it takes roughly 3 times
+     teqbm = 5.0*tlongest ! with excluded volume, it takes roughly 3 times
      ! to attain equilibrium even with init dist
   End If
 
@@ -315,9 +315,9 @@ Program chainsim_p
 
         FlowType = EQ
         Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
-             0._DBprec,tmax, deltseq, &
+             0._DBprec,teqbm, deltseq, &
              hstar , zstar, dstar, sqrtb, Q0s,  &
-             nseed, nsact, times, samples, phi )
+             nseed, 0, times, samples, phi )
 
         ! If doing equilibrium studies, use a large deltseq=1 first
         ! and later use deltsne for gathering data
@@ -330,10 +330,10 @@ Program chainsim_p
 
 
        ! FowType = SH
-       ! Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
-       !      0., tmax, deltsne, &
-       !      0., zstar, dstar, sqrtb, Q0s, &
-       !      nseed, nsact, times, samples , phi)
+        Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
+             0._DBprec, tmax, deltsne, &
+             hstar, zstar, dstar, sqrtb, Q0s, &
+             nseed, nsact, times, samples , phi)
 
          Inquire (file=ntrajfile, exist=Filexists)
         If (Filexists) Then
@@ -373,19 +373,21 @@ Program chainsim_p
       ! Write the position vector for all the sampling points for this
       ! trajectory
       ! to a file accordingly.
-        Write (posfile, '("Prop_", I3.3".txt")') ntrajout + 1
+        Write (posfile, '("traj_", I3.3".txt")') ntrajout + 101
         Open(unit = posunit, file = posfile, status = 'unknown')
           !write(posunit,*) 'kiran'
        
      If (gdots .Eq. 0) Then
         eqprops = 4
 
-        Write (posunit,Format42) (times(i), &
-             samples(1,i), global_errs(1,i),  &
-             samples(14,i), global_errs(14,i),  &
+        !Do i=1,nsact
+        Write (posunit,Format42)(times(i), &
+             samples(1,i), global_errs(1,i), &
+             samples(14,i), global_errs(14,i), &
              samples(17,i), global_errs(17,i), &
-             samples(11,i), global_errs(11,i), &
+             samples(11,i), i ,  &
              i = 1,nsact )
+
 
      Else
         neqprops = 4
