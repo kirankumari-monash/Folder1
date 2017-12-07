@@ -1,8 +1,8 @@
 #include <math.h>
 #include <stdio.h>  
 #include<stdlib.h>
-#define NDATA 700
-#define NTRAJ 100
+#define NDATA 800
+#define NTRAJ 50
 #define NBLOCKS 1
 #define CHOP 0
 main()
@@ -19,7 +19,7 @@ A = 4.0*M_PI*Nc/vol;
 double phi;
 int i, j, k, ib;
 int NDATA1 = NDATA - CHOP;
-int block = NDATA1/NBLOCKS; // size of the block
+int block = NDATA/NBLOCKS; // size of the block
 double time, det;
 double Re2;
 double Rg2;
@@ -34,7 +34,7 @@ double g11, g12, g13, g21, g22, g23, g31, g32, g33;
 double EtaMixNewTemp;
 double Re2mean = 0.0; 
 double Rg2mean = 0.0;
-double Re2traj[500], Rg2traj[500];
+double Re2traj[300], Rg2traj[300];
 double Re2block = 0.0, Rg2block = 0.0; // block avergaing over the trajectory
 double Re2bsq = 0.0, Rg2bsq = 0.0; 
 double Xmean = 0.0;
@@ -57,7 +57,13 @@ double Re2er=0.0;
 double Rg2er=0.0;
 double Re2trajER = 0.0, Rg2trajER = 0.0;
 double Re2ber, Rg2ber;
-double Xer = 0.0;
+df (i < CHOP) {
+                fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
+                }
+                if (i >= CHOP) {
+                fscanf(fp, "%lf %lf %lf %lf %lf %d \n", &time, &Re2, &Rg2, &dummy2, &dummy3, &dummy1);
+//                printf("after fscanf %lf \t %lf \n", Re2, Rg2);
+//                ouble Xer = 0.0;
 double EtaShrer=0.0;
 double EtaExter=0.0;
 double EtaMixer=0.0;
@@ -89,26 +95,26 @@ for (k=0; k<NTRAJ; k++){
    }
 for (k=0;k<NTRAJ;k++) {
 	FILE * fp;
-	sprintf(filename, "%s%d%s", baseProp, k+101, extProp);
+		sprintf(filename, "%s%d%s", baseProp, k+101, extProp);
 	//printf("filename = %s \n", filename);
 	fp = fopen(filename,"r");
 	j = 0;
 	for (i=0;i<NDATA;i++) {
-            
-         if (i < CHOP) {
-                fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
-                }
-                if (i >= CHOP) {
-                fscanf(fp, "%lf %lf %lf %lf %lf %d \n", &time, &Re2, &Rg2, &dummy2, &dummy3, &dummy1);
+                
+		if (i < CHOP) {
+		fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
+		} 
+		if (i >= CHOP) {
+		fscanf(fp, "%lf %lf %lf %lf %lf %d \n", &time, &Re2, &Rg2, &dummy2, &dummy3, &dummy1);
 //                printf("after fscanf %lf \t %lf \n", Re2, Rg2);
-
+		//j = j + 1;
 		Re2mean = Re2mean + Re2;
                 Re2traj[k] += Re2; 
                 
 		Rg2mean = Rg2mean + Rg2;
                 Rg2traj[k] += Rg2; 
                
-                if (j < block) {
+                while (j < block) {
                   Re2block += Re2;
                   Rg2block += Rg2;
                   j = j+1;
@@ -163,12 +169,13 @@ for (k=0;k<NTRAJ;k++) {
         fp = fopen(filename,"r");
         j = 0;
         for (i=0;i<NDATA;i++) {
-                 if (i < CHOP) {
-                fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
+                if (i < CHOP) {
+		 fscanf(fp, " %lf %lf %lf %lf %lf %d \n",&d6,&d2,&d3,&d4,&d5,&d1);
                 }
                 if (i >= CHOP) {
                 fscanf(fp, "%lf %lf %lf %lf %lf %d \n", &time, &Re2, &Rg2, &dummy2, &dummy3, &dummy1);
-//                printf("after fscanf %lf \t %lf \n", Re2, Rg2);
+
+
                 j = j + 1;
                 Re2er = Re2er + ((Re2 - Re2mean)*(Re2 - Re2mean));
 		Rg2er = Rg2er + ((Rg2 - Rg2mean)*(Rg2 - Rg2mean));

@@ -150,7 +150,7 @@ Program chainsim_p
   Else
      tmax = emax/gdots
   End If
-     tmax =5*t1rouse !!!! kiran 
+     tmax =3*t1rouse !!!! kiran 
    write (*,*) "trouse time is", t1rouse, "tmax is", tmax
   !_____________________________________________________________
   !        Initialization variable format expressions
@@ -240,7 +240,7 @@ Program chainsim_p
 
   !-- an unique seed incase clok is the same
   nseed = (nseed + 201271)
-  nseed = 201271
+  !nseed = 201271
   
 
   !_____________________________________________________________
