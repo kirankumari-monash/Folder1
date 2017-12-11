@@ -32,9 +32,11 @@ Program chainsim_p
   Integer (k4b) nseed
   !!! netcdf variable
   Character (len = *), Parameter :: FILE_NAME = "trial.nc"
-  Integer :: ncid, varid, data_out(6,12)
-  Integer, parameter :: Ndims = 2
-  Integer :: x_dimid, y_dimid, x, y, dimids(Ndims) 
+  Integer :: ncid, varid
+  Integer, parameter :: Ndims = 2, NX =6, NY=12
+  Integer, dimension(:,:), allocatable :: data_out(:,:)
+  Integer :: x_dimid, y_dimid, x, y, dimids(Ndims)
+ 
   ! File i/o
   Character(10), parameter :: FormatVersion = "GAVG-1.0"
   !Character (10) :: fver
@@ -122,7 +124,8 @@ Program chainsim_p
        global_avgs(NProps,Nsamples), &
        global_errs(NProps,Nsamples))
   
- Allocate(phi(NBeads,NBeads))
+  Allocate(phi(NBeads,NBeads))
+  Allocate(data_out(NY,NX))
 
   global_avgs = 0
   global_errs = 0
@@ -382,16 +385,16 @@ Program chainsim_p
         Write (posfile, '("traj_", I3.3".txt")') ntrajout + 101
         Open(unit = posunit, file = posfile, status = 'unknown')
           !write(posunit,*) 'kiran'
-        do x = 1, 6
-          do y = 1, 12
-              data_out(y, x) = (x - 1) * 12 + (y - 1)
+        do x = 1, NX
+          do y = 1, NY
+              data_out(y, x) = (x - 1) * NY + (y - 1)
           end do
         end do
 
        Call check(nf90_create(FILE_NAME, NF90_CLOBBER, ncid))
       ! Define the dimensions. NetCDF will hand back an ID for each.
-       call check( nf90_def_dim(ncid, "x", 6, x_dimid) )
-       call check( nf90_def_dim(ncid, "y", 12, y_dimid) )
+       call check( nf90_def_dim(ncid, "x", NX, x_dimid) )
+       call check( nf90_def_dim(ncid, "y", NY, y_dimid) )
         dimids =  (/ y_dimid, x_dimid /)
        call check( nf90_def_var(ncid, "data", NF90_INT, dimids, varid) )
        call check( nf90_enddef(ncid) )
