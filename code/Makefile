@@ -15,7 +15,9 @@ FC = g77
 
 
 ## optimisation level
-OPT = -O3 #-fast
+OPT = -O3 
+Net1 = -lnetcdff 
+Net2 = -lnetcdf #-fast
 #OPT = -fast
 #OPT = -cm -O3  -xW -w95 -ipo -tpp7
 #OPT = -cm -w95
@@ -33,7 +35,7 @@ OPT = -O3 #-fast
 #FFLAGS = -fbounds-check -fdefault-real-8
 ## Compiler flags
 #FFLAGS = -O3 -fast -CB -r8 #-mcmodel=large
-FFLAGS = $(db) $(INCLUDES) $(OPT) $(PRECISION) $(DEBUG)\
+FFLAGS = $(db) $(INCLUDES) $(OPT) $(Net2) $(Net1) #$(PRECISION) $(DEBUG)\
 # -warn unused -warn nousage -hpfwarn hpf \
 # -warn declarations -warn argument_checking
 
@@ -64,7 +66,7 @@ SYSLIBS = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread
 CHAINLIB = libchain.a
 
 sens: modules.o gsipc.o utils.o properties.o sensemble.o 
-	$(FC90) -o $@ $(LDFLAGS) $+ $(SYSLIBS)
+	$(FC90) -o $@ $(FFLAGS) $(LDFLAGS) $+ $(SYSLIBS)
 	strip $@
 
 cens: modules.f90 gsipc.f90 utils.f90 properties.f90 censemb.f90 

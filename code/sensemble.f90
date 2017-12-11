@@ -19,6 +19,7 @@ Program chainsim_p
   Use bspintfacs
   Use Flowvars
   Use Flock_utils
+  Use netcdf
   Implicit None
 
 
@@ -29,7 +30,11 @@ Program chainsim_p
 
   Character (len=12) clk(3)
   Integer (k4b) nseed
-
+  !!! netcdf variable
+  Character (len = *), Parameter :: FILE_NAME = "trial.nc"
+  Integer :: ncid, varid, data_out(6,12)
+  Integer, parameter :: Ndims = 2
+  Integer :: x_dimid, y_dimid, x, y, dimids(Ndims) 
   ! File i/o
   Character(10), parameter :: FormatVersion = "GAVG-1.0"
   !Character (10) :: fver
@@ -377,6 +382,24 @@ Program chainsim_p
         Write (posfile, '("traj_", I3.3".txt")') ntrajout + 101
         Open(unit = posunit, file = posfile, status = 'unknown')
           !write(posunit,*) 'kiran'
+        do x = 1, 6
+          do y = 1, 12
+              data_out(y, x) = (x - 1) * 12 + (y - 1)
+          end do
+        end do
+
+       Call check(nf90_create(FILE_NAME, NF90_CLOBBER, ncid))
+      ! Define the dimensions. NetCDF will hand back an ID for each.
+       call check( nf90_def_dim(ncid, "x", 6, x_dimid) )
+       call check( nf90_def_dim(ncid, "y", 12, y_dimid) )
+        dimids =  (/ y_dimid, x_dimid /)
+       call check( nf90_def_var(ncid, "data", NF90_INT, dimids, varid) )
+       call check( nf90_enddef(ncid) )
+       call check( nf90_put_var(ncid, varid, data_out) )
+       call check( nf90_close(ncid) )
+
+
+
        
      If (gdots .Eq. 0) Then
         eqprops = 4
@@ -668,6 +691,15 @@ Program chainsim_p
 
 72 Format (5(F10.4,2x))
 80 Format (3(F10.4,2x))
+  contains
+  subroutine check(status)
+    integer, intent ( in) :: status
+
+    if(status /= nf90_noerr) then
+      print *, trim(nf90_strerror(status))
+      stop 2
+    end if
+  end subroutine check
 
 End Program chainsim_p
 
