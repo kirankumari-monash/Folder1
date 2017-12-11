@@ -268,7 +268,7 @@ Contains
 
   Subroutine Excluded_volume_force(N,b2bvec,dr,Fev,phi)
     Use bspglocons
-
+    Use Flowvars
 !!! This routine returns excluded volume force
     Integer, intent (in) :: N
     Real (DBprec), Intent (in)  :: b2bvec(:,:,:)! Ndim x Nbeads x Nbeads
@@ -276,12 +276,35 @@ Contains
     Real (DBprec), Intent (out) :: Fev(:,:)     ! Ndim x Nbeads 
     Real (DBprec), Intent (in) :: phi(:,:)
     
-    Integer nu,mu
+    Integer nu,mu,inteq
     Real (DBprec) Fpair12(Ndim)
     Real (DBprec) :: alpha, beta 
     Fev  = 0.d0
     alpha = 3.1730728678d0
     beta = -0.856228645d0
+    
+    inteq = 1 
+     Select Case (FlowType)
+  case (EQ) ! Equilibrium
+     inteq  = 1 !Initial configuration in good solvent
+  case (UA) ! uniaxial extension
+     inteq  = 0 !Initial configuration in poor solvent
+  case (PL) ! planar extension
+     inteq  = 0 !Initial configuration in poor solvent
+  case (SH) ! planar shear
+     inteq  = 0 !Initial configuration in poor solvent
+  case (UR) ! uniaxial extension followed by relaxation
+     inteq  = 0 !Initial configuration in poor solvent
+  case (PU) ! periodic uniaxial extension
+     inteq  = 0 !Initial configuration in poor solvent
+  case (PP) ! periodic planar extension
+     inteq  = 0 !Initial configuration in poor solvent
+  case (PR)
+     inteq = 0
+  end Select
+
+
+
     If (LJa .Gt. 0.d0) Then
        ! caution donot use forall here, i means F12 will b evaluated for 
        ! all the values of mu,nu and then assigned, which is not what we 
@@ -290,6 +313,7 @@ Contains
        ! on any other index of lhs, other than the lhs itself
        ! ie, we can have  foo(mu) = foo(mu) + bar(nu)
        ! but not  foo(mu) = foo(mu+3) + bar(nu)
+      If (inteq .eq. 1) Then
        Do nu = 2,N
           Do mu  = 1,nu-1 
              ! force between the pair mu,nu, since the EV force is
@@ -308,18 +332,43 @@ Contains
                 Fev(:,mu) = Fev(:,mu) + Fpair12
                 Fev(:,nu) = Fev(:,nu) - Fpair12
 
-            Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then 
+!            Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then 
+!                 Fpair12= -b2bvec(:,mu,nu) &
+!                     *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
+!                 Fev(:,mu) = Fev(:,mu) + Fpair12
+!                 Fev(:,nu) = Fev(:,nu) - Fpair12
+           End If 
+          End Do
+       End Do
+    Else
+        Do nu = 2,N
+          Do mu  = 1,nu-1
+             ! force between the pair mu,nu, since the EV force is
+             ! repulsive, we take it to be in the opposite direction
+             ! of the connector vector mu -> nu
+             ! convention followed: force is positive for attraction
+           If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
+                Fpair12 = - b2bvec(:,mu,nu) &
+                   *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
+                Fev(:,mu) = Fev(:,mu) + Fpair12
+                Fev(:,nu) = Fev(:,nu) - Fpair12
+
+            Else If (dr(mu,nu) .lt. Rmin) Then
+               Fpair12 = - b2bvec(:,mu,nu) &
+                   *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
+                Fev(:,mu) = Fev(:,mu) + Fpair12
+                Fev(:,nu) = Fev(:,nu) - Fpair12
+
+            Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then
                  Fpair12= -b2bvec(:,mu,nu) &
                      *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
                  Fev(:,mu) = Fev(:,mu) + Fpair12
                  Fev(:,nu) = Fev(:,nu) - Fpair12
-           End If 
-            ! Fpair12 = - b2bvec(:,mu,nu) & 
-            !      * zsbyds5*Exp(-dr(mu,nu)*dr(mu,nu) * pt5bydssq) 
-            ! Fev(:,mu) = Fev(:,mu) + Fpair12
-            ! Fev(:,nu) = Fev(:,nu) - Fpair12
+           End If
           End Do
        End Do
+    End If 
+
     End If
   End Subroutine Excluded_volume_force
 End Module BSpModel

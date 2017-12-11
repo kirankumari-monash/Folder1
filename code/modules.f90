@@ -49,6 +49,7 @@ End Module Bspglovars
 Module Flowvars
   Use bspglocons
   Integer, Parameter :: EQ = 0, SH = 1, UA = 2, PL = 3,  UR = 4, PU = 5, PP = 6
+  Integer, Parameter :: PR = 7
   Integer FlowType
        ! EQ equilibrium, no flow
        ! SH Planar shear

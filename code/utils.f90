@@ -547,6 +547,9 @@ subroutine get_kappa(t,K)
      K(1,1) = 1
      K(2,2) = -1
      K = K * var
+   
+  case(PR)
+     K = 0
   end Select
   
   K = K * gdots     

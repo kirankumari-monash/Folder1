@@ -318,7 +318,7 @@ Program chainsim_p
         Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
              0._DBprec,teqbm, deltseq, &
              hstar , zstar, dstar, sqrtb, Q0s,  &
-             nseed, 0, times, samples, phi )
+             nseed, 1, times, samples, phi )
 
         ! If doing equilibrium studies, use a large deltseq=1 first
         ! and later use deltsne for gathering data
@@ -330,7 +330,7 @@ Program chainsim_p
        ! End If
 
 
-       ! FowType = SH
+        FlowType = PR
         Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
              0._DBprec, tmax, deltsne, &
              hstar, zstar, dstar, sqrtb, Q0s, &

@@ -1,5 +1,5 @@
-GFORTRAN module version '0' created from modules.f90 on Thu Dec  7 10:44:51 2017
-MD5:53f9825abc101c375b06a5b3a6bac416 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '0' created from modules.f90 on Mon Dec 11 11:53:02 2017
+MD5:89a78ebd9a430ed684d365eb65db75ff -- If you edit this, you'll get what you deserve.
 
 (() () () () () () ()
 () () () () () () () () () () () () () () () () () () () ())
@@ -74,31 +74,34 @@ INTEGER 4 0 0 INTEGER ()) 0 '3') () 0 () () () 0 0)
 22 'pp' 'flowvars' 'pp' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '6') () 0 () () () 0 0)
-23 'pu' 'flowvars' 'pu' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+23 'pr' 'flowvars' 'pr' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '7') () 0 () () () 0 0)
+24 'pu' 'flowvars' 'pu' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '5') () 0 () () () 0 0)
-24 'selected_int_kind' '(intrinsic)' 'selected_int_kind' 1 ((PROCEDURE
+25 'selected_int_kind' '(intrinsic)' 'selected_int_kind' 1 ((PROCEDURE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN FUNCTION) (REAL 4 0 0 REAL ())
-0 0 () () 24 () () () 0 0)
-25 'selected_real_kind' '(intrinsic)' 'selected_real_kind' 1 ((
+0 0 () () 25 () () () 0 0)
+26 'selected_real_kind' '(intrinsic)' 'selected_real_kind' 1 ((
 PROCEDURE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN FUNCTION) (REAL 4
-0 0 REAL ()) 0 0 () () 25 () () () 0 0)
-26 'sh' 'flowvars' 'sh' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+0 0 REAL ()) 0 0 () () 26 () () () 0 0)
+27 'sh' 'flowvars' 'sh' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '1') () 0 () () () 0 0)
-27 'sngl' 'bspglocons' 'sngl' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+28 'sngl' 'bspglocons' 'sngl' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '4') () 0 () () () 0 0)
-28 'tini' 'bspglocons' 'tini' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+29 'tini' 'bspglocons' 'tini' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (REAL 8 0 0 REAL ()) 0 0 () (CONSTANT (REAL 8 0 0
 REAL ()) 0 '0.1ef2d100000000@-20') () 0 () () () 0 0)
-29 'ua' 'flowvars' 'ua' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+30 'ua' 'flowvars' 'ua' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '2') () 0 () () () 0 0)
-30 'ur' 'flowvars' 'ur' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+31 'ur' 'flowvars' 'ur' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '4') () 0 () () () 0 0)
-31 'wlc' 'bspglocons' 'wlc' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+32 'wlc' 'bspglocons' 'wlc' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '4') () 0 () () () 0 0)
 )
@@ -106,6 +109,6 @@ INTEGER 4 0 0 INTEGER ()) 0 '4') () 0 () () () 0 0)
 ('__convert_r4_r8' 0 2 'bspglocons' 0 3 'dbprec' 0 4 'dobl' 0 5 'eq' 0 6
 'fene' 0 7 'flowtype' 0 8 'flowvars' 0 9 'fraenkel' 0 10 'gdots' 0 11
 'hook' 0 12 'ilc' 0 13 'k4b' 0 14 'maxcheb' 0 15 'maxxdist' 0 16 'myeps'
-0 17 'ndim' 0 18 'nprops' 0 19 'pi' 0 20 'pl' 0 21 'pp' 0 22 'pu' 0 23
-'selected_int_kind' 0 24 'selected_real_kind' 0 25 'sh' 0 26 'sngl' 0 27
-'tini' 0 28 'ua' 0 29 'ur' 0 30 'wlc' 0 31)
+0 17 'ndim' 0 18 'nprops' 0 19 'pi' 0 20 'pl' 0 21 'pp' 0 22 'pr' 0 23
+'pu' 0 24 'selected_int_kind' 0 25 'selected_real_kind' 0 26 'sh' 0 27
+'sngl' 0 28 'tini' 0 29 'ua' 0 30 'ur' 0 31 'wlc' 0 32)
