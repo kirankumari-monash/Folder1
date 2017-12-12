@@ -1,5 +1,5 @@
-GFORTRAN module version '0' created from utils.f90 on Mon Dec 11 16:32:39 2017
-MD5:cd534a661950c6555b23a66ccec5d415 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '0' created from utils.f90 on Tue Dec 12 12:49:33 2017
+MD5:114e6e78f4e3643ac4087d862bb35259 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () ()
 () () () () () () () () () () () () () () () () () () () ())
@@ -31,14 +31,14 @@ CHARACTER 1 0 0 CHARACTER (())) 0 5 'lock-') () 0 () () () 0 0)
 13 'unlockfile' 'flock_utils' 'unlockfile' 1 ((PROCEDURE UNKNOWN-INTENT
 MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 14 0 (
 15 16) () 0 () () () 0 0)
+11 'file' '' 'file' 9 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)
+(CHARACTER 1 0 0 CHARACTER (())) 0 0 () () 0 () () () 0 0)
+10 'unit' '' 'unit' 9 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)
+(INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 6 'file' '' 'file' 5 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY) (
 CHARACTER 1 0 0 CHARACTER (())) 0 0 () () 0 () () () 0 0)
 7 'lstat' '' 'lstat' 5 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)
 (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 () () () 0 0)
-10 'unit' '' 'unit' 9 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)
-(INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-11 'file' '' 'file' 9 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)
-(CHARACTER 1 0 0 CHARACTER (())) 0 0 () () 0 () () () 0 0)
 15 'unit' '' 'unit' 14 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)
 (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 16 'file' '' 'file' 14 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY)

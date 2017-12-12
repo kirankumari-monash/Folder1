@@ -1,8 +1,8 @@
-GFORTRAN module version '0' created from modules.f90 on Mon Dec 11 16:32:38 2017
-MD5:812182121b4b46bfd4052e5602d38aff -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '0' created from modules.f90 on Tue Dec 12 12:49:31 2017
+MD5:dcbc0105156979d88348719a30bbc478 -- If you edit this, you'll get what you deserve.
 
-(() () ()
-() () () () () () () () () () () () () () () () () () () () () () () ())
+(() () () ()
+() () () () () () () () () () () () () () () () () () () () () () ())
 
 ()
 
@@ -115,11 +115,11 @@ MODULE-PROC BODY UNKNOWN EXTERNAL SUBROUTINE ALWAYS_EXPLICIT) (UNKNOWN 0
 97 'time_integrate_chain' 'bspintfacs' 'time_integrate_chain' 1 ((
 PROCEDURE UNKNOWN-INTENT MODULE-PROC BODY UNKNOWN EXTERNAL SUBROUTINE
 ALWAYS_EXPLICIT) (UNKNOWN 0 0 0 UNKNOWN ()) 98 0 (99 100 101 102 103 104
-105 106 107 108 109 110 111 112 113 114) () 0 () () () 0 0)
-115 'tini' 'bspglocons' 'tini' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+105 106 107 108 109 110 111 112 113 114 115 116) () 0 () () () 0 0)
+117 'tini' 'bspglocons' 'tini' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (REAL 8 0 0 REAL ()) 0 0 () (CONSTANT (REAL 8 0 0
 REAL ()) 0 '0.1ef2d100000000@-20') () 0 () () () 0 0)
-116 'wlc' 'bspglocons' 'wlc' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+118 'wlc' 'bspglocons' 'wlc' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (INTEGER 4 0 0 INTEGER ()) 0 0 () (CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '4') () 0 () () () 0 0)
 38 'l0s' '' 'l0s' 35 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DUMMY) (
@@ -181,6 +181,14 @@ INTEGER ()) 0 '1') ()) 0 () () () 0 0)
 DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 ASSUMED_SHAPE (CONSTANT
 (INTEGER 4 0 0 INTEGER ()) 0 '1') () (CONSTANT (INTEGER 4 0 0 INTEGER ())
 0 '1') ()) 0 () () () 0 0)
+115 'confi' '' 'confi' 98 ((VARIABLE INOUT UNKNOWN-PROC UNKNOWN UNKNOWN
+DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (3 ASSUMED_SHAPE (CONSTANT
+(INTEGER 4 0 0 INTEGER ()) 0 '1') () (CONSTANT (INTEGER 4 0 0 INTEGER ())
+0 '1') () (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
+116 'grad' '' 'grad' 98 ((VARIABLE INOUT UNKNOWN-PROC UNKNOWN UNKNOWN
+DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (3 ASSUMED_SHAPE (CONSTANT
+(INTEGER 4 0 0 INTEGER ()) 0 '1') () (CONSTANT (INTEGER 4 0 0 INTEGER ())
+0 '1') () (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') ()) 0 () () () 0 0)
 78 'c' '' 'c' 77 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN DIMENSION
 DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (1 EXPLICIT (CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '4')) 0 () ()
@@ -293,4 +301,4 @@ DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 ASSUMED_SHAPE (CONSTANT (INTEGER 4
 60 'normeqpr' 0 61 'nprops' 0 66 'numint' 0 67 'pi' 0 75
 'polish_poly_root' 0 76 'ran_1' 0 81 'selected_int_kind' 0 86
 'selected_real_kind' 0 87 'sngl' 0 88 'time_correl' 0 89
-'time_integrate_chain' 0 97 'tini' 0 115 'wlc' 0 116)
+'time_integrate_chain' 0 97 'tini' 0 117 'wlc' 0 118)

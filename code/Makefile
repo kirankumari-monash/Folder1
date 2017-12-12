@@ -31,11 +31,10 @@ Net2 = -lnetcdf #-fast
 # for mpich at brecca.vpac
 #MPIHOME = /usr/local/mpich-1.2.5-i-gm
 #INCLUDES = -I$(MPIHOME)/include
-
-#FFLAGS = -fbounds-check -fdefault-real-8
+db = -fbounds-check #-fdefault-real-8
 ## Compiler flags
 #FFLAGS = -O3 -fast -CB -r8 #-mcmodel=large
-FFLAGS = $(db) $(INCLUDES) $(OPT) $(Net2) $(Net1) #$(PRECISION) $(DEBUG)\
+FFLAGS = $(db) $(INCLUDES) $(OPT) $(Net2) $(Net1) $(PRECISION) $(DEBUG)\
 # -warn unused -warn nousage -hpfwarn hpf \
 # -warn declarations -warn argument_checking
 

@@ -377,7 +377,7 @@ End Module BSpModel
 Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      tcur, tmax, Delts, &
      Hstar, Zstar, Dstar, L0s, Q0s, &
-     seed1, Nsamples, times, samples, phi)
+     seed1, Nsamples, times, samples, phi, confi, grad)
   Use bspglocons
   Use bspglovars
   Use Flowvars
@@ -409,6 +409,8 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
   Real (DBprec),  Intent (in), Dimension(:) :: times    ! Sampling instances
   Real (DBprec), Intent (inout), Dimension(:,:) :: samples
   Real (DBprec), Intent (in), Dimension(:,:) :: phi
+  Real (DBprec), Intent (inout), Dimension(:,:,:) :: confi
+  Real (DBprec), Intent (inout), Dimension(:,:,:) :: grad
 
 
 !!!_________________________________________________________|
@@ -640,7 +642,8 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
            ! Diffusivity
            If (time > 0.0d0) samples(17,isample) = delx2/2/Ndim/time
 
-
+           confi(isample, :, :) = R_Bead(:,:)
+           grad(isample, :, :) = F_tot(:,:)
            isample = isample + 1
         End If
      End If

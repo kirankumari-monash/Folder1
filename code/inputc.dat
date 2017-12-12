@@ -5,7 +5,7 @@ emax	Nsamples
 ndelts	
 1	
 dtseq	dtsne	nblock	ntot	tol	
-0.1	0.1	5	100000	0.001	
+5	1	1	100000	0.001	
 
 
 
