@@ -1,20 +1,12 @@
-<<<<<<< HEAD
 SpType	NBeads	h*	z*	d*	L0*	Q0*	Gdot	Bens	NetCDF	
-1	2	0	0	1	10	0	0	1	1
-=======
-SpType	NBeads	h*	z*	d*	L0*	Q0*	Gdot	
-2	2	0	4	1	7.07106	0	0	
->>>>>>> b606990
+2	6	0.3	0	1	10	0	0	0	0
 emax	Nsamples	
 2	1000	
 ndelts	
 1	
 dtseq	dtsne	nblock	ntot	tol	
-<<<<<<< HEAD
-10	0.1	5	100000	0.001	
-=======
-0.001	0.001	1	10000	0.001	
->>>>>>> b606990
+0.001	0.001	100	10000	0.001	
+
 
 
 

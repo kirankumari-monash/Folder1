@@ -293,14 +293,9 @@ Contains
     Real (DBprec), Intent (inout) :: R0(:,:) ! last neighbour list update
     Real (DBprec), Intent (out) :: Fev(:,:)     ! Ndim x Nbeads 
     Real (DBprec), Intent (in) :: phi(:,:)
-<<<<<<< HEAD
-    
-    Integer nu,mu,inteq
-    Real (DBprec) Fpair12(Ndim)
-=======
-    Integer nu,mu, UPDATE
+
+    Integer nu,mu, UPDATE, inteq
     Real (DBprec) :: Fpair12(Ndim), r12(Ndim), modr
->>>>>>> b606990
     Real (DBprec) :: alpha, beta 
 !!! Parameters for neighbour list
     Integer nlist, point(N)
@@ -341,67 +336,10 @@ Contains
        ! unique for-all the values of loop index, and RHS must not depend 
        ! on any other index of lhs, other than the lhs itself
        ! ie, we can have  foo(mu) = foo(mu) + bar(nu)
-       ! but not  foo(mu) = foo(mu+3) + bar(nu)
-<<<<<<< HEAD
-      If (inteq .eq. 1) Then
-       Do nu = 2,N
-          Do mu  = 1,nu-1 
-             ! force between the pair mu,nu, since the EV force is
-             ! repulsive, we take it to be in the opposite direction
-             ! of the connector vector mu -> nu
-             ! convention followed: force is positive for attraction
-           If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
-                Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
-                Fev(:,mu) = Fev(:,mu) + Fpair12
-                Fev(:,nu) = Fev(:,nu) - Fpair12
-         
-            Else If (dr(mu,nu) .lt. Rmin) Then
-               Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
-                Fev(:,mu) = Fev(:,mu) + Fpair12
-                Fev(:,nu) = Fev(:,nu) - Fpair12
+       ! but not  foo(mu) = foo(mu+3) + bar(nu)            
 
-!            Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then 
-!                 Fpair12= -b2bvec(:,mu,nu) &
-!                     *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
-!                 Fev(:,mu) = Fev(:,mu) + Fpair12
-!                 Fev(:,nu) = Fev(:,nu) - Fpair12
-           End If 
-          End Do
-       End Do
-    Else
-        Do nu = 2,N
-          Do mu  = 1,nu-1
-             ! force between the pair mu,nu, since the EV force is
-             ! repulsive, we take it to be in the opposite direction
-             ! of the connector vector mu -> nu
-             ! convention followed: force is positive for attraction
-           If (dr(mu,nu) .le. Rcutg .and. dr(mu,nu) .ge. Rmin) Then
-                Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(dr(mu,nu)**(LJpa+2.d0))-LJb/(dr(mu,nu)**(LJpb+2.d0)))
-                Fev(:,mu) = Fev(:,mu) + Fpair12
-                Fev(:,nu) = Fev(:,nu) - Fpair12
 
-            Else If (dr(mu,nu) .lt. Rmin) Then
-               Fpair12 = - b2bvec(:,mu,nu) &
-                   *(LJa/(Rmin**(LJpa+2.d0))-LJb/(Rmin**(LJpb+2.d0)))
-                Fev(:,mu) = Fev(:,mu) + Fpair12
-                Fev(:,nu) = Fev(:,nu) - Fpair12
-
-            Else If (dr(mu,nu) .le. Rcutp .and. dr(mu,nu) .gt. Rcutg) Then
-                 Fpair12= -b2bvec(:,mu,nu) &
-                     *alpha*phi(mu,nu)*sin(alpha*dr(mu,nu)*dr(mu,nu) + beta)
-                 Fev(:,mu) = Fev(:,mu) + Fpair12
-                 Fev(:,nu) = Fev(:,nu) - Fpair12
-           End If
-          End Do
-       End Do
-    End If 
-
-    End If
-=======
-          ! NEIGHBOUR LIST
+         ! NEIGHBOUR LIST
       ! Call CheckNeighbour(N,R_list_save,R0,UPDATE)
        UPDATE = 1 
        Select case (UPDATE)
@@ -502,7 +440,6 @@ Contains
            End Do  ! nu
        End Select
    End If ! LJa
->>>>>>> b606990
   End Subroutine Excluded_volume_force
 
   Subroutine CheckNeighbour(N,R_Bead,R0,UPDATE)
