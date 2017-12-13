@@ -25,7 +25,7 @@ Subroutine Initial_position(SType,N,L0s,R,myseed)
 
   Integer, save :: varseed = 201235
 
-  Integer mu, done
+  Integer mu, done, dummy
   Real (DBprec), parameter :: upbound = 2.d0
   Real (DBprec) modr,b2b(Ndim),rv,eqpr, rvchk
   Real (DBprec) b
@@ -56,7 +56,12 @@ Subroutine Initial_position(SType,N,L0s,R,myseed)
     
      !!!!!!!!!! Change Spring type
      ! if (SType .ne. HOOK) then
-     if (SType .ne. Fraenkel) then
+     If (Stype .eq. Hook) then
+         dummy = 1
+     Else If (Stype .eq. Fraenkel) then
+         dummy = 1
+     End If
+     if (dummy .ne. 1) then
         done = 0;
        
         do while (done .ne. 1)

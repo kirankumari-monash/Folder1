@@ -48,7 +48,7 @@ for traj in range(5):
   r_sqs = np.sum(dist[:],axis=0)
   print 're2_%s'%(traj+1), r_sqs
 
-
+###############   Rg #####################################
 
 
   r_ens = r_ens+ r_sqs

@@ -9,8 +9,10 @@ This will compile a single processor (multiple runs per directory)
 Major Implementation: 
    1) Fraenkel spring 
    2) Modified LJ potential
-   3) double precision using flag
-   
+   3) double precision using flag and hardcore 
+   4) Block ensemble
+   5) NetCDF
+ 
 
 Minor Modification:
    1) Corrected the array size of maxminev subroutine of utils.f90 (not properly defined earlier)
@@ -28,8 +30,7 @@ SpType (int)
    1 Hookean
    2 FENE
    3 ILC
-   4 WLC
-
+   
 NBeads (int) 
    is the number of beads
 

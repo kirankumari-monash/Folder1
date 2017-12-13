@@ -1,11 +1,11 @@
-SpType	NBeads	h*	z*	d*	L0*	Q0*	Gdot	
-2	2	0	0	1	10	0	0	
+SpType	NBeads	h*	z*	d*	L0*	Q0*	Gdot	Bens	NetCDF	
+1	2	0	0	1	10	0	0	1	1
 emax	Nsamples	
 2	1000	
 ndelts	
 1	
 dtseq	dtsne	nblock	ntot	tol	
-10	2	5	100000	0.001	
+10	0.1	5	100000	0.001	
 
 
 

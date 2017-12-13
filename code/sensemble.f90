@@ -80,6 +80,7 @@ Program chainsim_p
 
 
   Integer :: NBeads
+  Integer :: bens, Netcd
   Real (DBprec) :: Delts
 
   !_____________________________________________________________
@@ -91,7 +92,8 @@ Program chainsim_p
 
   Open (unit=inunit,file=infile,status="old")
   Read (inunit,*)
-  Read (inunit,*) SType, NBeads, hstar, zstar, dstar, sqrtb, Q0s, gdots
+  Read (inunit,*) SType, NBeads, hstar, zstar, dstar, sqrtb, Q0s, gdots, &
+                  bens, Netcd
   Read (inunit,*)
   Read (inunit,*) emax, Nsamples
   Read (inunit,*)
@@ -164,7 +166,7 @@ Program chainsim_p
   Else
      tmax = emax/gdots
   End If
-     tmax =10!*t1rouse !!!! kiran 
+     tmax =2*t1rouse !!!! kiran 
    write (*,*) "trouse time is", t1rouse, "tmax is", tmax
   !_____________________________________________________________
   !        Initialization variable format expressions
@@ -356,7 +358,9 @@ Program chainsim_p
              0._DBprec, tmax, deltsne, &
              hstar, zstar, dstar, sqrtb, Q0s, &
              nseed, nsact, times, samples , phi, time_cdf, confi, grad)
-
+       
+        
+        
          Inquire (file=ntrajfile, exist=Filexists)
         If (Filexists) Then
            !-- check if it is locked
@@ -395,34 +399,9 @@ Program chainsim_p
       ! Write the position vector for all the sampling points for this
       ! trajectory
       ! to a file accordingly.
+       If (bens .eq. 1) then
         Write (posfile, '("traj_", I3.3".txt")') ntrajout + 101
         Open(unit = posunit, file = posfile, status = 'unknown')
-          !write(posunit,*) 'kiran'
-        do x = 1, NX
-          do y = 1, NY
-              data_out(y, x) = (x - 1) * NY + (y - 1)
-          end do
-        end do
-       write (netfile, '("net_", I3.3".nc")') ntrajout + 101
-       Call check(nf90_create(netfile, NF90_CLOBBER, ncid))
-      ! Define the dimensions. NetCDF will hand back an ID for each.
-       call check( nf90_def_dim(ncid, "No_of_samples", nsact, x_dimid) )
-       call check( nf90_def_dim(ncid, "Ndim", Ndim, y_dimid) )
-       call check(nf90_def_dim(ncid, "NBeads", NBeads, z_dimid))
-       
-        dimids =  (/x_dimid, y_dimid, z_dimid /)
-       call check(nf90_def_var(ncid, "Time", NF90_DOUBLE,x_dimid, varid_time))
-       call check( nf90_def_var(ncid, "configuration", NF90_DOUBLE, dimids, varid_confi) )
-       call check(nf90_def_var(ncid, "Gradient", NF90_DOUBLE, dimids, varid_grad))
-       call check( nf90_enddef(ncid) )
-       
-       call check(nf90_put_var(ncid, varid_time, time_cdf))
-       call check( nf90_put_var(ncid, varid_confi, confi) )
-       call check(nf90_put_var(ncid, varid_grad, grad))
-       call check( nf90_close(ncid) )
-
-
-
        
      If (gdots .Eq. 0) Then
         eqprops = 4
@@ -456,7 +435,26 @@ Program chainsim_p
 
 
         Close (posunit)
+    end if ! for block ensemble
+    If (netcd .eq. 1) Then
+    write (netfile, '("net_", I3.3".nc")') ntrajout + 101
+    Call check(nf90_create(netfile, NF90_CLOBBER, ncid))
+!   Define the dimensions. NetCDF will hand back an ID for each.
+    call check( nf90_def_dim(ncid, "No_of_samples", nsact, x_dimid) )
+    call check( nf90_def_dim(ncid, "Ndim", Ndim, y_dimid) )
+    call check(nf90_def_dim(ncid, "NBeads", NBeads, z_dimid))
 
+    dimids =  (/x_dimid, y_dimid, z_dimid /)
+    call check(nf90_def_var(ncid, "Time", NF90_DOUBLE,x_dimid, varid_time))
+    call check( nf90_def_var(ncid, "configuration", NF90_DOUBLE, dimids,varid_confi) )
+    call check(nf90_def_var(ncid, "Gradient", NF90_DOUBLE, dimids,varid_grad))
+    call check( nf90_enddef(ncid) )
+
+    call check(nf90_put_var(ncid, varid_time, time_cdf))
+    call check( nf90_put_var(ncid, varid_confi, confi) )
+    call check(nf90_put_var(ncid, varid_grad, grad))
+    call check( nf90_close(ncid) )
+    End If ! netcdf
 
 
         avgs = avgs + samples
