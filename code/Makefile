@@ -8,6 +8,7 @@ CC = cc
 FC90 = gfortran
 FC = g77
 
+<<<<<<< HEAD
 #CC = icc
 #FC90 = ifort
 #MPIF90 = mpif90
@@ -18,6 +19,16 @@ FC = g77
 OPT = -O3 
 Net1 = -lnetcdff 
 Net2 = -lnetcdf #-fast
+=======
+CC = icc
+FC90 = ifort
+#MPIF90 = mpif90
+FC = ifort
+
+
+## optimisation level
+#OPT = -O3 #-fast
+>>>>>>> b606990
 #OPT = -fast
 #OPT = -cm -O3  -xW -w95 -ipo -tpp7
 #OPT = -cm -w95
@@ -34,8 +45,13 @@ Net2 = -lnetcdf #-fast
 
 #FFLAGS = -fbounds-check -fdefault-real-8
 ## Compiler flags
+<<<<<<< HEAD
 #FFLAGS = -O3 -fast -CB -r8 #-mcmodel=large
 FFLAGS = $(db) $(INCLUDES) $(OPT) $(Net2) $(Net1) #$(PRECISION) $(DEBUG)\
+=======
+FFLAGS = -O3 -fast -CB -r8 #-mcmodel=large
+#FFLAGS = $(db) $(INCLUDES) $(OPT) $(PRECISION) $(DEBUG)\
+>>>>>>> b606990
 # -warn unused -warn nousage -hpfwarn hpf \
 # -warn declarations -warn argument_checking
 
