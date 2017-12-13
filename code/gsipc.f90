@@ -698,6 +698,10 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
      F_tot = F_spring + F_ev
 
 
+     If (Hstar .Gt. 0 .and. Zstar .eq. 0) Then
+         Call b2bvector_sym_up(NBeads,R_Bead,b2b_sup)
+         Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
+     End If 
      !        Calculate the RPY diffusion tensor
      If (Hstar.Gt.0) Then
         Do nu = 2,NBeads
@@ -871,7 +875,7 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
 
 
      If (Hstar.Gt.0) Then
-        alpha = (2.5D0 - 1)*Delts
+        alpha = 0.25d0*Delts
         beta = 0.D0
         ! Assigns DR_pred <- 0.25*Delts* D.F     
        ! Select Case (DBprec)
@@ -914,6 +918,11 @@ Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
        ! Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
        Call Excluded_volume_force(NBeads,R_pred,b2b_sup,deltaR_sup, &
                    R_list_save, R0,F_ev,phi)
+
+        If (Hstar .Gt.0 .and. Zstar .eq. 0) Then
+            Call b2bvector_sym_up(NBeads,R_pred,b2b_sup)
+            Call modr_sym_up(NBeads,b2b_sup,deltaR_sup)
+        End If
 
         ! Calculate D.FEV using R_pred and update
         If (Hstar.Gt.0) Then
