@@ -32,11 +32,11 @@ Program chainsim_p
   Integer (k4b) nseed
   !!! netcdf variable
   Character (len = *), Parameter :: FILE_NAME = "trial.nc"
-  Integer :: ncid, varid
+  Integer :: ncid, varid_time, varid_confi, varid_grad
   Integer, parameter :: Ndims = 2, NX =6, NY=12
   Integer, dimension(:,:), allocatable :: data_out(:,:)
   Integer :: x_dimid, y_dimid, z_dimid, x, y, dimids(3)
- 
+!  Real(DBprec) time_save 
   ! File i/o
   Character(10), parameter :: FormatVersion = "GAVG-1.0"
   !Character (10) :: fver
@@ -68,7 +68,8 @@ Program chainsim_p
   !!!!! phi parameter declared here
   Real (DBprec), Allocatable :: phi(:,:)
   !!! Variable for netcdf
-  Real (DBprec), Allocatable :: confi(:,:,:), grad(:,:,:) 
+  Real (DBprec), Allocatable :: confi(:,:,:), grad(:,:,:), time_cdf(:)
+  
 
   Integer SType,mmult, nsact, cidx, ord, eqprops, neqprops
 
@@ -127,13 +128,13 @@ Program chainsim_p
   
   Allocate(phi(NBeads,NBeads))
   Allocate(data_out(NY,NX))
-  Allocate(confi(Nsamples,Ndim, NBeads), &
-           grad(Nsamples,Ndim, NBeads))
+!  Allocate(confi(Nsamples,Ndim, NBeads), &
+!           grad(Nsamples,Ndim, NBeads))
 
   global_avgs = 0
   global_errs = 0
-  confi = 0
-  grad = 0
+!  confi = 0
+!  grad = 0
 
     Open (unit=inphi,file="phi.dat",status="old")
     Do k = 1, NBeads
@@ -269,9 +270,14 @@ Program chainsim_p
      mmult = Int(tmax/(Nsamples-1)/deltsne) + 1
 
      ! actual no of samples to b taken
-     nsact = tmax/deltsne/mmult + 1
-  !  Allocate( confi(Nsamples,Ndim,NBeads), &
-   !           grad(Nsamples,Ndim,NBeads))
+     nsact = tmax/deltsne/mmult + 1 
+
+    Allocate(confi(nsact,Ndim,NBeads), &
+              grad(nsact,Ndim,NBeads), &
+              time_cdf(nsact))
+    confi = 0
+    grad = 0
+    time_cdf = 0
     ! nsact = Nsamples
      Do i = 1,nsact
         times(i) = (i-1)*mmult*deltsne
@@ -333,7 +339,7 @@ Program chainsim_p
         Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
              0._DBprec,teqbm, deltseq, &
              hstar , zstar, dstar, sqrtb, Q0s,  &
-             nseed, 1, times, samples, phi, confi, grad)
+             nseed, 1, times, samples, phi, time_cdf, confi, grad)
 
         ! If doing equilibrium studies, use a large deltseq=1 first
         ! and later use deltsne for gathering data
@@ -349,7 +355,7 @@ Program chainsim_p
         Call Time_Integrate_Chain(NBeads, PosVecR, SType,  &
              0._DBprec, tmax, deltsne, &
              hstar, zstar, dstar, sqrtb, Q0s, &
-             nseed, nsact, times, samples , phi, confi, grad)
+             nseed, nsact, times, samples , phi, time_cdf, confi, grad)
 
          Inquire (file=ntrajfile, exist=Filexists)
         If (Filexists) Then
@@ -400,13 +406,19 @@ Program chainsim_p
        write (netfile, '("net_", I3.3".nc")') ntrajout + 101
        Call check(nf90_create(netfile, NF90_CLOBBER, ncid))
       ! Define the dimensions. NetCDF will hand back an ID for each.
-       call check( nf90_def_dim(ncid, "No_of_samples", Nsamples, x_dimid) )
+       call check( nf90_def_dim(ncid, "No_of_samples", nsact, x_dimid) )
        call check( nf90_def_dim(ncid, "Ndim", Ndim, y_dimid) )
        call check(nf90_def_dim(ncid, "NBeads", NBeads, z_dimid))
+       
         dimids =  (/x_dimid, y_dimid, z_dimid /)
-       call check( nf90_def_var(ncid, "configuration", NF90_DOUBLE, dimids, varid) )
+       call check(nf90_def_var(ncid, "Time", NF90_DOUBLE,x_dimid, varid_time))
+       call check( nf90_def_var(ncid, "configuration", NF90_DOUBLE, dimids, varid_confi) )
+       call check(nf90_def_var(ncid, "Gradient", NF90_DOUBLE, dimids, varid_grad))
        call check( nf90_enddef(ncid) )
-       call check( nf90_put_var(ncid, varid, confi) )
+       
+       call check(nf90_put_var(ncid, varid_time, time_cdf))
+       call check( nf90_put_var(ncid, varid_confi, confi) )
+       call check(nf90_put_var(ncid, varid_grad, grad))
        call check( nf90_close(ncid) )
 
 

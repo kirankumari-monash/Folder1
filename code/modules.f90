@@ -95,7 +95,7 @@ Module Bspintfacs
      Subroutine Time_Integrate_Chain(NBeads, R_Bead, spring_type, &
           tcur, tmax, Delts, &
           Hstar, Zstar, Dstar, L0s, Q0s, &
-          seed1, Nsamples, times, samples, phi, confi, grad)
+          seed1, Nsamples, times, samples, phi, time_cdf, confi, grad)
 
        Use bspglocons
        Integer, Intent(in) :: NBeads
@@ -115,9 +115,10 @@ Module Bspintfacs
        Integer (k4b), Intent (inout) :: seed1 ! seed for rnd number
        
        Integer, Intent(in) :: Nsamples     ! Number of sampling points
-       Real (DBprec),  Intent (in), Dimension(:) :: times    ! Sampling instances
+       Real (DBprec),  Intent (inout), Dimension(:) :: times    ! Sampling instances
        Real (DBprec), Intent (inout), Dimension(:,:) :: samples
        Real (DBprec), Intent (in), Dimension(:,:) :: phi
+       Real (DBprec), Intent (inout), Dimension(:) :: time_cdf  
        Real (DBprec), Intent (inout), Dimension(:,:,:) :: confi
        Real (DBprec), Intent (inout), Dimension(:,:,:) :: grad  
      End Subroutine Time_Integrate_Chain

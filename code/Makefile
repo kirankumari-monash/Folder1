@@ -24,6 +24,7 @@ Net2 = -lnetcdf #-fast
 #db = -g
 #DEBUG = -mcmodel=large  ## will increase the execution time
 #PRECISION = -r8
+PRECISION = -fdefault-real-8
 # for lc at apac
 #LAMHOME=/opt/lam-6.5.8/Intel
 #INCLUDES = -I$(LAMHOME)/include
@@ -31,7 +32,7 @@ Net2 = -lnetcdf #-fast
 # for mpich at brecca.vpac
 #MPIHOME = /usr/local/mpich-1.2.5-i-gm
 #INCLUDES = -I$(MPIHOME)/include
-db = -fbounds-check #-fdefault-real-8
+#db = -fbounds-check #-fdefault-real-8
 ## Compiler flags
 #FFLAGS = -O3 -fast -CB -r8 #-mcmodel=large
 FFLAGS = $(db) $(INCLUDES) $(OPT) $(Net2) $(Net1) $(PRECISION) $(DEBUG)\
