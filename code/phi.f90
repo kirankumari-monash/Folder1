@@ -13,7 +13,7 @@
        real(FPREC) :: xx(N,N), YY(N,N)
        Do i =1, N
          DO j = 1,N
-            XX(i,j) = 0.8d0  ! write value of phi, which u want
+            XX(i,j) = 5d0  ! write value of phi, which u want
          END DO
        END DO
        OPEN (UNIT=11,file="phi.dat",status="unknown")
